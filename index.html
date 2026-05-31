@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Premium Interactive PhotoBooth Studio Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@700&family=Bangers&family=Courier+Prime:wght@700&family=Dancing+Script:wght@700&family=Fredoka:wght@600&family=Orbitron:wght@700&family=Pacifico&family=Parisienne&family=Pinyon+Script&family=Sacramento&display=swap" rel="stylesheet">
+<style>
+/* KIOSK PREMIUM SYSTEM UI */
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+body{background:#0b0b0d; color:#f4f4f7; padding:12px; min-height:100vh; display:flex; flex-direction:column; justify-content:center;}
+
+.booth-container {
+    max-width: 440px;
+    width: 100%;
+    margin: 0 auto;
+    background: #141419;
+    border: 1px solid #272732;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+}
+
+.step-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1f1f26; padding: 8px 12px; border-radius: 10px; margin-bottom: 14px;
+}
+.step-indicator { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #a1a1aa; letter-spacing: 0.5px; }
+.step-indicator.active { color: #007aff; }
+
+.booth-screen { display: none; animation: fadeIn 0.2s ease-in-out forwards; }
+.booth-screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.screen-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; text-align: center; color: #fff; }
+.screen-subtitle { font-size: 11px; text-align: center; color: #a1a1aa; margin-bottom: 12px; }
+
+.scroll-grid-wrapper {
+    width: 100%; overflow-x: auto; padding: 6px 2px; margin-bottom: 14px; display: flex; gap: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+.scroll-grid-wrapper::-webkit-scrollbar { height: 4px; }
+.scroll-grid-wrapper::-webkit-scrollbar-thumb { background: #3a3a4c; border-radius: 4px; }
+
+.template-card {
+    background: #1f1f26; border: 1px solid #363646; border-radius: 10px; padding: 8px; text-align: center; width: 85px; flex-shrink: 0; cursor: pointer; transition: all 0.15s ease; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.template-card:hover { border-color: #4b4b5e; }
+.template-card.selected { background: #1a2638; border-color: #007aff; }
+
+.thumb-canvas {
+    background: #ffffff; border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); display: block; width: 45px !important; height: auto !important;
+}
+.template-card .title-label { font-size: 9px; font-weight: 600; line-height: 1.2; color: #d4d4d8; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 100%; }
+
+/* CUSTOM TEMPLATE TOOL CSS */
+.custom-upload-zone {
+    background: #1f1f26; border: 2px dashed #3f3f52; border-radius: 10px; padding: 12px; text-align: center; margin-bottom: 14px; cursor: pointer;
+}
+.custom-upload-zone:hover { border-color: #007aff; }
+.hole-mapper-panel {
+    background: #1a1a24; border: 1px solid #2d2d3d; border-radius: 12px; padding: 10px; margin-bottom: 14px; display: none;
+}
+.mapper-canvas-container {
+    width: 100%; display: flex; justify-content: center; background: #0b0b0d; padding: 8px; border-radius: 8px; max-height: 280px; overflow: auto; margin-bottom: 8px;
+}
+#customHoleSetupCanvas { background: #222; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: crosshair; touch-action: none; }
+
+.camera-box {
+    position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 2px solid #3f3f52;
+}
+#boothVideo { display: none; }
+#livePreviewCanvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.camera-ratio-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2;
+}
+.ratio-guide-box {
+    border: 2px dashed #007aff; background: rgba(0,0,0,0.25); box-shadow: 0 0 0 9999px rgba(11, 11, 13, 0.6); transition: all 0.3s ease;
+}
+
+.shutter-flash {
+    position: absolute; top:0; left:0; width:100%; height:100%; background: #ffffff; color: #000; font-size: 50px; font-weight: 900; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; z-index: 10;
+}
+.shutter-flash.counting { background: rgba(0,0,0,0.75); color: #fff; opacity: 1; }
+.shutter-flash.flash-burst { animation: flashAnim 0.35s ease-out forwards; }
+@keyframes flashAnim { 0% { opacity: 1; background: #fff; } 100% { opacity: 0; background: #fff; } }
+
+.live-strip-scroller {
+    width: 100%; overflow-x: auto; display: flex; gap: 8px; background: #1f1f26; padding: 8px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #2c2c38;
+}
+.mini-film-slot {
+    width: 65px; height: 65px; background: #141419; border: 1px solid #3f3f52; border-radius: 6px; position: relative; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.mini-film-slot img { width: 100%; height: 100%; object-fit: cover; }
+.mini-film-slot .slot-number { position: absolute; bottom: 2px; left: 4px; font-size: 9px; font-weight: bold; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px; color: #aaa;}
+.mini-film-slot.active-capture { border-color: #007aff; box-shadow: 0 0 6px rgba(0, 122, 255, 0.6); }
+.mini-film-slot .retake-btn {
+    position: absolute; top: 2px; right: 2px; background: #ef4444; border: none; border-radius: 4px; width: 16px; height: 16px; font-size: 9px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+.canvas-scroll-container {
+    width: 100%; display: flex; justify-content: center; overflow: auto; padding: 2px; margin-bottom: 12px;
+}
+canvas.main-workspace {
+    background: #fff; border-radius: 6px; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.4); width: 240px !important; height: auto !important; touch-action: none;
+}
+
+.editing-panel { background: #1f1f26; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid #272732;}
+.tools-row { display: flex; flex-direction: column; gap: 10px; }
+.control-group { display: flex; flex-direction: column; gap: 5px; }
+.control-group label { font-size: 10px; color:#a1a1aa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.color-picker-wrapper { display: flex; align-items: center; gap: 8px; }
+.swatches-flex { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; flex: 1; }
+.swatch-item { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; flex-shrink:0; box-shadow: inset 0 0 4px rgba(0,0,0,0.4); transition: transform 0.1s; }
+.swatch-item:hover { transform: scale(1.1); }
+.swatch-item.selected { border-color: #007aff; transform: scale(1.15); box-shadow: 0 0 8px rgba(0,122,255,0.5); }
+.custom-color-input { -webkit-appearance: none; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; background: transparent; }
+.custom-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.custom-color-input::-webkit-color-swatch { border: 2px solid #3f3f52; border-radius: 6px; }
+
+.text-input-box { 
+    width:100%; padding:8px; background:#2c2c38; border:1px solid #3f3f52; border-radius:6px; color:#fff; font-size:12px; outline:none; 
+}
+
+.custom-dropdown-container { position: relative; width: 100%; user-select: none; -webkit-user-select: none; }
+.dropdown-trigger {
+    background: #2c2c38; border: 1px solid #3f3f52; padding: 10px 12px; border-radius: 6px; color: #fff; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+}
+.dropdown-trigger::after { content: '▼'; font-size: 10px; color: #a1a1aa; }
+.dropdown-menu-list {
+    position: absolute; top: 105%; left: 0; width: 100%; background: #22222a; border: 1px solid #444456; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); z-index: 9999; max-height: 240px; overflow-y: auto; display: none; -webkit-overflow-scrolling: touch;
+}
+.dropdown-menu-list.show { display: block; }
+.dropdown-option-item {
+    padding: 12px 14px; color: #fff; cursor: pointer; font-size: 14px; border-bottom: 1px solid #2d2d3a; transition: background 0.1s; display: block; width: 100%; text-align: left;
+}
+.dropdown-option-item:active, .dropdown-option-item:hover { background: #007aff; color: #ffffff !important; }
+
+.btn-add-text { background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 4px; width: fit-content; }
+.history-controls { display: flex; gap: 6px; margin-top: 4px; }
+.btn-history-action {
+    flex: 1; background: #3a3a4c; color: #e4e4e7; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.btn-history-action:disabled { opacity: 0.4; cursor: not-allowed; background: #22222a; color: #71717a; }
+
+.stickers-shelf { display: flex; gap: 10px; overflow-x: auto; padding: 6px 0; -webkit-overflow-scrolling: touch;}
+.sticker-asset-btn { 
+    width: 46px; height: 46px; background: #2c2c38; border: 1px solid #3f3f52; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 4px;
+}
+.sticker-asset-btn svg, .sticker-asset-btn text { width: 34px; height: 34px; text-anchor: middle; dominant-baseline: middle; }
+
+.nav-footer { display: flex; gap: 6px; margin-top: 8px; }
+.btn-nav { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.btn-back { background: #2c2c38; color: #e4e4e7; }
+.btn-next { background: #007aff; color: white; }
+.btn-next:disabled { background: #1f1f26; color: #555; cursor: not-allowed; }
+.btn-download { background: #34c759; color: white; width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="booth-container">
+    <div class="step-bar">
+        <span class="step-indicator active" id="ind-1">1. Layout</span>
+        <span class="step-indicator" id="ind-2">2. Camera</span>
+        <span class="step-indicator" id="ind-3">3. Decor</span>
+        <span class="step-indicator" id="ind-4">4. Save</span>
+    </div>
+
+    <!-- STEP 1 SCREEN -->
+    <div class="booth-screen active" id="screen-1">
+        <h2 class="screen-title">Choose Your Layout</h2>
+        <div class="screen-subtitle">Swipe or scroll to preview design styles</div>
+        <div class="scroll-grid-wrapper">
+            <div class="template-card selected" onclick="pickLayoutSchema(1, this)"><canvas id="thumb-1" class="thumb-canvas" width="45" height="67"></canvas><span class="title-label">Quad Grid</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(2, this)"><canvas id="thumb-2" class="thumb-canvas" width="45" height="135"></canvas><span class="title-label">3-Photo Strip</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(3, this)"><canvas id="thumb-3" class="thumb-canvas" width="45" height="157"></canvas><span class="title-label">4-Photo Strip</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(4, this)"><canvas id="thumb-4" class="thumb-canvas" width="45" height="63"></canvas><span class="title-label">Portrait Big</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(5, this)"><canvas id="thumb-5" class="thumb-canvas" width="45" height="37"></canvas><span class="title-label">Landscape Pair</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(6, this)"><canvas id="thumb-6" class="thumb-canvas" width="45" height="45"></canvas><span class="title-label">Square 1-Pic</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(7, this)"><canvas id="thumb-7" class="thumb-canvas" width="45" height="67"></canvas><span class="title-label">Classic 2x2</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(8, this)"><canvas id="thumb-8" class="thumb-canvas" width="45" height="90"></canvas><span class="title-label">Vertical 3-Grid</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(9, this)"><canvas id="thumb-9" class="thumb-canvas" width="45" height="60"></canvas><span class="title-label">Wide Cinematic</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(10, this)"><canvas id="thumb-10" class="thumb-canvas" width="45" height="75"></canvas><span class="title-label">6-Grid Poster</span></div>
+            <div class="template-card" onclick="pickLayoutSchema(11, this)"><canvas id="thumb-11" class="thumb-canvas" width="45" height="180"></canvas><span class="title-label">Mega 5-Strip</span></div>
+            <div class="template-card" id="customTemplateCard" onclick="pickLayoutSchema(99, this)"><canvas id="thumb-99" class="thumb-canvas" width="45" height="80"></canvas><span class="title-label">Custom PNG</span></div>
+        </div>
+
+        <!-- CUSTOM TEMPLATE CONFIGURATION HOLE MAPPER TOOL -->
+        <div class="custom-upload-zone" onclick="document.getElementById('hiddenTemplateFileField').click()">
+            <span style="font-size:12px; font-weight:bold; color:#007aff;">📂 Upload Custom Canva Frame Overlay (PNG)</span>
+            <input type="file" id="hiddenTemplateFileField" accept="image/png, image/jpeg" style="display:none;" onchange="loadCustomTemplatePNGFile(this)">
+        </div>
+
+        <div class="hole-mapper-panel" id="customHoleMapperTool">
+            <div style="font-size:11px; color:#fff; font-weight:700; margin-bottom:4px; text-align:center;">🗺️ Photo Hole Setup Engine</div>
+            <div style="font-size:9px; color:#a1a1aa; margin-bottom:6px; text-align:center;">Click & Drag directly on the frame to map your photo slots.</div>
+            <div class="mapper-canvas-container">
+                <canvas id="customHoleSetupCanvas"></canvas>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="mapperStatusText" style="font-size:10px; color:#34c759; font-weight:bold;">0 slots created</span>
+                <button onclick="clearCustomMappedHoles()" style="background:#ef4444; border:none; color:#fff; font-size:10px; padding:4px 8px; border-radius:4px; cursor:pointer;">Clear Slots</button>
+            </div>
+        </div>
+
+        <div class="nav-footer"><button class="btn-nav btn-next" id="step1NextBtn" onclick="navigateToScreen(2)">Next Step: Camera ➔</button></div>
+    </div>
+
+    <!-- STEP 2 SCREEN -->
+    <div class="booth-screen" id="screen-2">
+        <h2 class="screen-title" id="camTitlePrompt">Capture Live Shots</h2>
+        <div class="screen-subtitle">Center your subject inside the box guide</div>
+        
+        <div class="camera-box">
+            <video id="boothVideo" autoplay playsinline muted></video>
+            <canvas id="livePreviewCanvas"></canvas>
+            <div class="camera-ratio-overlay"><div id="dynamicRatioGuide" class="ratio-guide-box"></div></div>
+            <div class="shutter-flash" id="countdownLayer">3</div>
+        </div>
+
+        <div class="live-strip-scroller" id="filmStripScroller"></div>
+        
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+            <div style="display:flex; gap:6px;">
+                <select id="timerDropdown" style="flex:1; padding:10px; background:#22222a; border:1px solid #363644; color:#fff; font-size:12px; border-radius:8px; outline:none;">
+                    <option value="3">⏱️ 3s Delay</option>
+                    <option value="5">⏱️ 5s Delay</option>
+                    <option value="0">⚡ No Delay</option>
+                </select>
+                
+                <select id="filterDropdown" style="flex:1; padding:10px; background:#22222a; border:1px solid #363644; color:#fff; font-size:12px; border-radius:8px; outline:none;" onchange="syncLiveFilterMode()">
+                    <option value="none">🎬 Normal Cam</option>
+                    <option value="creamy">🍦 Creamy Soft</option>
+                    <option value="cyber">🌆 Cyber Punk Neon</option>
+                    <option value="noir">🎬 Dramatic Noir</option>
+                    <option value="digicam">📸 Digicam Y2K Flash</option>
+                    <option value="fuji">🎞️ Fuji Classic Chrome</option>
+                    <option value="mono">🔲 Mono B&W</option>
+                    <option value="cool">❄️ Nordic Ice Cool</option>
+                    <option value="vintage">🎞️ Vintage Sepia</option>
+                    <option value="warm">🍁 Warm Retro</option>
+                </select>
+            </div>
+            
+            <div style="display:flex; gap:6px; align-items:center;">
+                <div style="flex:1; display:flex; align-items:center; gap:8px; padding:8px; background:#1f1f26; border-radius:8px; border:1px solid #2c2c38;">
+                    <input type="checkbox" id="toggleDateStampCheckbox" checked style="width:16px; height:16px; cursor:pointer;">
+                    <label for="toggleDateStampCheckbox" style="font-size:11px; color:#a1a1aa; font-weight:700; cursor:pointer;">💡 Date Stamp</label>
+                </div>
+                <div style="flex:1; display:flex; align-items:center; gap:8px; padding:8px; background:#1f1f26; border-radius:8px; border:1px solid #2c2c38;">
+                    <input type="checkbox" id="continuousCaptureCheckbox" style="width:16px; height:16px; cursor:pointer;">
+                    <label for="continuousCaptureCheckbox" style="font-size:11px; color:#007aff; font-weight:700; cursor:pointer;">🔄 Continuous Mode</label>
+                </div>
+            </div>
+            <button class="btn-nav btn-next" id="shutterTriggerBtn" style="width:100%; background:#007aff; font-size:13px;" onclick="fireCameraCountdown()">📸 Take Photo</button>
+        </div>
+        
+        <div class="nav-footer">
+            <button class="btn-nav btn-back" id="camBackBtn" onclick="navigateToScreen(1)">⬅ Layout</button>
+            <button class="btn-nav btn-next" id="goToDecorBtn" disabled onclick="navigateToScreen(3)">Next: Decorate ➔</button>
+        </div>
+    </div>
+
+    <!-- STEP 3 SCREEN -->
+    <div class="booth-screen" id="screen-3">
+        <h2 class="screen-title">Personalize Frame</h2>
+        <div class="screen-subtitle">Asul: Resize | Lila (Gitna): Stretch | Berde: Rotate | Double-tap to delete</div>
+        <div class="canvas-scroll-container"><canvas id="boothCanvas" class="main-workspace" width="500" height="750"></canvas></div>
+
+        <div class="editing-panel">
+            <div class="tools-row">
+                <div class="control-group">
+                    <label>Frame Background Color</label>
+                    <div class="color-picker-wrapper">
+                        <div class="swatches-flex">
+                            <div class="swatch-item selected" style="background:#F0F8FF;" onclick="modifyCanvasColor('#F0F8FF', this)"></div>
+                            <div class="swatch-item" style="background:#0B0314;" onclick="modifyCanvasColor('#0B0314', this)"></div>
+                            <div class="swatch-item" style="background:#1A1A1A;" onclick="modifyCanvasColor('#1A1A1A', this)"></div>
+                            <div class="swatch-item" style="background:#DA00F7;" onclick="modifyCanvasColor('#DA00F7', this)"></div>
+                            <div class="swatch-item" style="background:#00F5D4;" onclick="modifyCanvasColor('#00F5D4', this)"></div>
+                            <div class="swatch-item" style="background:#FF5722;" onclick="modifyCanvasColor('#FF5722', this)"></div>
+                        </div>
+                        <input type="color" id="customFrameColorInput" class="custom-color-input" value="#F0F8FF" oninput="handleCustomColorChoice(this.value)">
+                    </div>
+                </div>
+
+                <div class="control-group" id="textControlsContainer">
+                    <label>Edit Selected Text / Add Labels</label>
+                    <input type="text" id="liveTextContentBox" class="text-input-box" value="Double-tap object to delete" oninput="updateActiveTextObject()">
+                    <div style="display: flex; gap: 6px; margin-top: 5px; align-items: center;">
+                        <div class="custom-dropdown-container" style="flex: 2;">
+                            <div class="dropdown-trigger" id="fontDropdownTrigger" onclick="toggleFontDropdownMenu()">📟 Retro Monospace</div>
+                            <div class="dropdown-menu-list" id="fontDropdownMenu">
+                                <div class="dropdown-option-item" style="font-family:'Sacramento', cursive;" onclick="selectFontFromCustomMenu(`'Sacramento', cursive`, '🎗️ Aesthetic Ribbon')">🎗️ Aesthetic Ribbon</div>
+                                <div class="dropdown-option-item" style="font-family:'Antonio', sans-serif;" onclick="selectFontFromCustomMenu(`'Antonio', sans-serif`, '🚀 Antonio Impact')">🚀 Antonio Impact</div>
+                                <div class="dropdown-option-item" style="font-family:'Bangers', sans-serif;" onclick="selectFontFromCustomMenu(`'Bangers', sans-serif`, '🦸 Comic Action')">🦸 Comic Action</div>
+                                <div class="dropdown-option-item" style="font-family:'Pacifico', cursive;" onclick="selectFontFromCustomMenu(`'Pacifico', cursive`, '🌊 Coastal Pacifico')">🌊 Coastal Pacifico</div>
+                                <div class="dropdown-option-item" style="font-family:'Orbitron', sans-serif;" onclick="selectFontFromCustomMenu(`'Orbitron', sans-serif`, '👾 Cyber Arcade')">👾 Cyber Arcade</div>
+                                <div class="dropdown-option-item" style="font-family:'Dancing Script', cursive;" onclick="selectFontFromCustomMenu(`'Dancing Script', cursive`, '💃 Dancing Casual')">💃 Dancing Casual</div>
+                                <div class="dropdown-option-item" style="font-family:'Fredoka', sans-serif;" onclick="selectFontFromCustomMenu(`'Fredoka', sans-serif`, '🧸 Fredoka Cute')">🧸 Fredoka Cute</div>
+                                <div class="dropdown-option-item" style="font-family:'Parisienne', cursive;" onclick="selectFontFromCustomMenu(`'Parisienne', cursive`, '📜 Parisienne Vintage')">📜 Parisienne Vintage</div>
+                                <div class="dropdown-option-item" style="font-family:'Pinyon Script', cursive;" onclick="selectFontFromCustomMenu(`'Pinyon Script', cursive`, '💎 Pinyon Luxury')">💎 Pinyon Luxury</div>
+                                <div class="dropdown-option-item" style="font-family:'Courier Prime', monospace;" onclick="selectFontFromCustomMenu(`'Courier Prime', monospace`, '📟 Retro Monospace')">📟 Retro Monospace</div>
+                            </div>
+                        </div>
+                        <input type="color" id="textCustomColor" class="custom-color-input" value="#111111" oninput="updateActiveTextObject()">
+                    </div>
+                    <button class="btn-add-text" onclick="createNewTextObject()">➕ Add New Text</button>
+                    
+                    <div class="history-controls">
+                        <button class="btn-history-action" id="canvasUndoButton" onclick="triggerCanvasUndo()" disabled>↩️ Undo</button>
+                        <button class="btn-history-action" id="canvasRedoButton" onclick="triggerCanvasRedo()" disabled>↪️ Redo</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Stickers Library</label>
+                    <div class="stickers-shelf">
+                        <button class="sticker-asset-btn" onclick="generateVectorSticker('star')"><svg viewBox="0 0 24 24"><path fill="#ffb703" d="M12 1.74l3.19 6.46 7.13 1.04-5.16 5.03 1.22 7.1-6.38-3.36-6.38 3.36 1.22-7.1-5.16-5.03 7.13-1.04z"/></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateVectorSticker('heart')"><svg viewBox="0 0 24 24"><path fill="#e63946" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z"/></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateVectorSticker('sparkle')"><svg viewBox="0 0 24 24"><path fill="#00f5d4" d="M12 2s1 5 6 6-6 1-6 6-1-5-6-6 5-1 6-6z"/></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateVectorSticker('crown')"><svg viewBox="0 0 24 24"><path fill="#ffe14c" d="M2 22h20v-2H2v2zm3-4h14l2-8-5 4-4-7-4 7-5-4 2 8z"/></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateVectorSticker('butterfly')"><svg viewBox="0 0 24 24"><path fill="#ff70a6" d="M12 8c.5-2 2.5-5 5.5-5 2.5 0 4.5 2 4.5 4.5 0 3-3.5 6.5-10 9.5-6.5-3-10-6.5-10-9.5C2 5 4 3 6.5 3 9.5 3 11.5 6 12 8z"/></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateEmojiSticker('🥑')"><svg viewBox="0 0 32 32"><text x="16" y="22" font-size="22">🥑</text></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateEmojiSticker('🧸')"><svg viewBox="0 0 32 32"><text x="16" y="22" font-size="22">🧸</text></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateEmojiSticker('🎀')"><svg viewBox="0 0 32 32"><text x="16" y="22" font-size="22">🎀</text></svg></button>
+                        <button class="sticker-asset-btn" onclick="generateEmojiSticker('🐈')"><svg viewBox="0 0 32 32"><text x="16" y="22" font-size="22">🐈</text></svg></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-footer">
+            <button class="btn-nav btn-back" onclick="navigateToScreen(2)">⬅ Camera</button>
+            <button class="btn-nav btn-next" onclick="navigateToScreen(4)">Next: Complete ➔</button>
+        </div>
+    </div>
+
+    <!-- STEP 4 SCREEN -->
+    <div class="booth-screen" id="screen-4">
+        <h2 class="screen-title">Your Masterpiece is Ready!</h2>
+        <div class="screen-subtitle">Your personalized frame is ready for download</div>
+        <div class="canvas-scroll-container"><canvas id="boothCanvasFinalCopy" class="main-workspace" width="500" height="750"></canvas></div>
+        <button class="btn-nav btn-download" onclick="triggerImageDownload()">📥 Download PNG Image</button>
+        <div class="nav-footer" style="margin-top:8px;"><button class="btn-nav btn-back" style="background:#ff3b30; color:white;" onclick="resetEntireBoothProcess()">🔄 Restart Session</button></div>
+    </div>
+</div>
+
+<script>
+const video = document.getElementById("boothVideo");
+const canvas = document.getElementById("boothCanvas");
+const ctx = canvas.getContext("2d");
+const finalCanvas = document.getElementById("boothCanvasFinalCopy");
+
+const previewCanvas = document.getElementById("livePreviewCanvas");
+const pCtx = previewCanvas.getContext("2d");
+
+let activeStep = 1;
+let selectedLayoutId = 1;
+let frameBackgroundColor = "#F0F8FF"; 
+let isVideoLive = false;
+let stageObjects = [];
+let activeTargetObject = null;
+let selectedFontFamilyValue = "'Courier Prime', monospace"; 
+let activeLiveFilterMode = "none";
+let globalAnimationFrameTracker = null;
+
+let historyStateUndoStack = [];
+let historyStateRedoStack = [];
+
+let isHoldingObject = false;
+let activeInteractionType = null; 
+let startRotationAngle = 0;
+let objectStartAngle = 0;
+let objectStartWidth = 0;
+let objectStartHeight = 0;
+let objectStartX = 0;
+let objectStartY = 0;
+let objectStartScaleX = 1;
+let objectStartScaleY = 1;
+let startDistance = { x: 0, y: 0 }; 
+let lastTapTime = 0;
+const handleRadius = 9; 
+const rotHandleOffset = 30;
+
+// Alignment indicator state
+let isCenteredX = false;
+let isCenteredY = false;
+const snapThreshold = 8; 
+
+// CUSTOM TEMPLATE SPECIFIC STATE VARIABLES
+let customTemplateGlobalImageObject = null;
+let customMappedHoleConfigurationsArray = [];
+let isDrawingCustomHoleBox = false;
+let customHoleDrawStartPoint = { x: 0, y: 0 };
+let customHoleDrawEndPoint = { x: 0, y: 0 };
+
+const templateRegistry = {
+    1: { w: 500, h: 750, label: "Quad Grid", frames: [
+        { id:1, x:25,  y:30,  w:215, h:210, image:null }, { id:2, x:260, y:30,  w:215, h:210, image:null },
+        { id:3, x:25,  y:265, w:215, h:210, image:null }, { id:4, x:260, y:265, w:215, h:210, image:null }
+    ]},
+    2: { w: 400, h: 1200, label: "3-Photo Strip", frames: [
+        { id:1, x:25, y:30,  w:350, h:260, image:null }, { id:2, x:25, y:315, w:350, h:260, image:null }, { id:3, x:25, y:600, w:350, h:260, image:null }
+    ]},
+    3: { w: 400, h: 1400, label: "4-Photo Strip", frames: [
+        { id:1, x:25, y:30,  w:350, h:250, image:null }, { id:2, x:25, y:305, w:350, h:250, image:null }, { id:3, x:25, y:580, w:350, h:250, image:null }, { id:4, x:25, y:855, w:350, h:250, image:null }
+    ]},
+    4: { w: 500, h: 700, label: "Portrait Big", frames: [ { id:1, x:30, y:30, w:440, h:520, image:null } ]},
+    5: { w: 600, h: 500, label: "Landscape Pair", frames: [ { id:1, x:25, y:30, w:260, h:360, image:null }, { id:2, x:315, y:30, w:260, h:360, image:null } ]},
+    6: { w: 500, h: 500, label: "Square 1-Pic", frames: [ { id:1, x:25, y:25, w:450, h:450, image:null } ]},
+    7: { w: 500, h: 750, label: "Classic 2x2", frames: [
+        { id:1, x:30, y:30, w:210, h:310, image:null }, { id:2, x:260, y:30, w:210, h:310, image:null },
+        { id:3, x:30, y:370, w:210, h:310, image:null }, { id:4, x:260, y:370, w:210, h:310, image:null }
+    ]},
+    8: { w: 400, h: 800, label: "Vertical 3-Grid", frames: [
+        { id:1, x:25, y:25, w:350, h:220, image:null }, { id:2, x:25, y:270, w:350, h:220, image:null }, { id:3, x:25, y:515, w:350, h:220, image:null }
+    ]},
+    9: { w: 600, h: 400, label: "Wide Cinematic", frames: [ { id:1, x:25, y:25, w:550, h:310, image:null } ]},
+    10: { w: 500, h: 800, label: "6-Grid Poster", frames: [
+        { id:1, x:25, y:30, w:215, h:210, image:null }, { id:2, x:260, y:30, w:215, h:210, image:null },
+        { id:3, x:25, y:265, w:215, h:210, image:null }, { id:4, x:260, y:265, w:215, h:210, image:null },
+        { id:5, x:25, y:500, w:215, h:210, image:null }, { id:6, x:260, y:500, w:215, h:210, image:null }
+    ]},
+    11: { w: 400, h: 1600, label: "Mega 5-Strip", frames: [
+        { id:1, x:25, y:25, w:350, h:280, image:null }, { id:2, x:25, y:330, w:350, h:280, image:null },
+        { id:3, x:25, y:635, w:350, h:280, image:null }, { id:4, x:25, y:940, w:350, h:280, image:null },
+        { id:5, x:25, y:1245, w:350, h:280, image:null }
+    ]},
+    99: { w: 500, h: 800, label: "Custom PNG", frames: [] } // Placeholder configuration for step 1 custom file
+};
+
+let currentFrameStructure = JSON.parse(JSON.stringify(templateRegistry[1].frames));
+
+window.onload = function() {
+    buildMiniLayoutPreviews();
+    setupCanvasInteractions();
+    setupCustomHoleMapperInteractiveEvents();
+};
+
+function buildMiniLayoutPreviews() {
+    Object.keys(templateRegistry).forEach(key => {
+        const thumbCanvas = document.getElementById(`thumb-${key}`);
+        if (!thumbCanvas) return;
+        const tCtx = thumbCanvas.getContext("2d");
+        const orig = templateRegistry[key];
+        const scale = thumbCanvas.width / orig.w;
+        tCtx.fillStyle = "#ffffff"; tCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+        
+        if(key == 99) {
+            // Draw special icon logic for user custom upload thumbnail
+            tCtx.strokeStyle = "#007aff"; tCtx.lineWidth = 2; tCtx.strokeRect(4, 4, thumbCanvas.width-8, thumbCanvas.height-8);
+            tCtx.fillStyle = "#007aff"; tCtx.font = "bold 9px sans-serif"; tCtx.textAlign = "center"; tCtx.fillText("NEW+", thumbCanvas.width/2, thumbCanvas.height/2+3);
+            return;
+        }
+        orig.frames.forEach(fr => {
+            tCtx.fillStyle = "#9ca3af"; tCtx.fillRect(fr.x * scale, fr.y * scale, fr.w * scale, fr.h * scale);
+        });
+    });
+}
+
+// INTERACTIVE ENGINE FOR CANVAS IMAGE OVERLAY & MAPPING
+function loadCustomTemplatePNGFile(inputElement) {
+    if (inputElement.files && inputElement.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                customTemplateGlobalImageObject = img;
+                
+                // Set the default standard layout sizing values using loaded image proportions
+                templateRegistry[99].w = img.width;
+                templateRegistry[99].h = img.height;
+                
+                // Refresh template setting
+                const card = document.getElementById("customTemplateCard");
+                pickLayoutSchema(99, card);
+                
+                // Initialize the Interactive Mapping Screen Controls
+                initCustomTemplateHoleSetupCanvasUI();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(inputElement.files[0]);
+    }
+}
+
+function initCustomTemplateHoleSetupCanvasUI() {
+    const mCanvas = document.getElementById("customHoleSetupCanvas");
+    const mCtx = mCanvas.getContext("2d");
+    const container = document.getElementById("customHoleMapperTool");
+    
+    container.style.display = "block";
+    
+    // Scale container dimensions appropriately for display
+    let designWidth = customTemplateGlobalImageObject.width;
+    let designHeight = customTemplateGlobalImageObject.height;
+    let maxDisplayWidth = 260;
+    let renderScale = maxDisplayWidth / designWidth;
+    
+    mCanvas.width = maxDisplayWidth;
+    mCanvas.height = designHeight * renderScale;
+    
+    renderCustomHoleSetupScreenView();
+}
+
+function renderCustomHoleSetupScreenView() {
+    const mCanvas = document.getElementById("customHoleSetupCanvas");
+    const mCtx = mCanvas.getContext("2d");
+    
+    mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+    // Draw base design image onto background layer
+    mCtx.drawImage(customTemplateGlobalImageObject, 0, 0, mCanvas.width, mCanvas.height);
+    
+    // Draw already configured mapped boxes
+    customMappedHoleConfigurationsArray.forEach((hole, index) => {
+        mCtx.strokeStyle = "#da00f7";
+        mCtx.lineWidth = 2;
+        mCtx.strokeRect(hole.viewX, hole.viewY, hole.viewW, hole.viewH);
+        
+        mCtx.fillStyle = "rgba(218, 0, 247, 0.25)";
+        mCtx.fillRect(hole.viewX, hole.viewY, hole.viewW, hole.viewH);
+        
+        mCtx.fillStyle = "#ffffff";
+        mCtx.font = "bold 10px sans-serif";
+        mCtx.fillText(`Slot ${index + 1}`, hole.viewX + 5, hole.viewY + 14);
+    });
+    
+    // Draw actively forming dragging preview box
+    if(isDrawingCustomHoleBox) {
+        mCtx.strokeStyle = "#007aff";
+        mCtx.lineWidth = 2;
+        mCtx.setLineDash([4, 4]);
+        let w = customHoleDrawEndPoint.x - customHoleDrawStartPoint.x;
+        let h = customHoleDrawEndPoint.y - customHoleDrawStartPoint.y;
+        mCtx.strokeRect(customHoleDrawStartPoint.x, customHoleDrawStartPoint.y, w, h);
+        mCtx.setLineDash([]);
+    }
+    
+    document.getElementById("mapperStatusText").innerText = `${customMappedHoleConfigurationsArray.length} slots created`;
+    
+    // Dynamically feed into core system matrix array mapping structures
+    syncCustomMappedHolesWithSystemRegistry();
+}
+
+function setupCustomHoleMapperInteractiveEvents() {
+    const mCanvas = document.getElementById("customHoleSetupCanvas");
+    
+    function getCanvasCoordinates(e) {
+        let rect = mCanvas.getBoundingClientRect();
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+    
+    mCanvas.addEventListener("mousedown", (e) => {
+        if(!customTemplateGlobalImageObject) return;
+        isDrawingCustomHoleBox = true;
+        let coords = getCanvasCoordinates(e);
+        customHoleDrawStartPoint = coords;
+        customHoleDrawEndPoint = coords;
+        renderCustomHoleSetupScreenView();
+    });
+    
+    mCanvas.addEventListener("mousemove", (e) => {
+        if(!isDrawingCustomHoleBox) return;
+        customHoleDrawEndPoint = getCanvasCoordinates(e);
+        renderCustomHoleSetupScreenView();
+    });
+    
+    window.addEventListener("mouseup", () => {
+        if(!isDrawingCustomHoleBox) return;
+        isDrawingCustomHoleBox = false;
+        
+        let width = customHoleDrawEndPoint.x - customHoleDrawStartPoint.x;
+        let height = customHoleDrawEndPoint.y - customHoleDrawStartPoint.y;
+        
+        // Prevent registering accidental clicks / microscopic boxes
+        if(Math.abs(width) > 8 && Math.abs(height) > 8) {
+            // Re-orient matching coordinates if drawn backwards natively
+            let finalX = width > 0 ? customHoleDrawStartPoint.x : customHoleDrawEndPoint.x;
+            let finalY = height > 0 ? customHoleDrawStartPoint.y : customHoleDrawEndPoint.y;
+            let finalW = Math.abs(width);
+            let finalH = Math.abs(height);
+            
+            // Map parameters backwards cleanly into native original master scale positions
+            let scaleFactor = customTemplateGlobalImageObject.width / mCanvas.width;
+            
+            customMappedHoleConfigurationsArray.push({
+                viewX: finalX, viewY: finalY, viewW: finalW, viewH: finalH,
+                origX: finalX * scaleFactor,
+                origY: finalY * scaleFactor,
+                origW: finalW * scaleFactor,
+                origH: finalH * scaleFactor
+            });
+        }
+        renderCustomHoleSetupScreenView();
+    });
+}
+
+function clearCustomMappedHoles() {
+    customMappedHoleConfigurationsArray = [];
+    renderCustomHoleSetupScreenView();
+}
+
+function syncCustomMappedHolesWithSystemRegistry() {
+    if(selectedLayoutId !== 99) return;
+    
+    let generatedFrames = customMappedHoleConfigurationsArray.map((hole, idx) => {
+        return {
+            id: idx + 1,
+            x: hole.origX,
+            y: hole.origY,
+            w: hole.origW,
+            h: hole.origH,
+            image: null
+        };
+    });
+    
+    templateRegistry[99].frames = generatedFrames;
+    currentFrameStructure = JSON.parse(JSON.stringify(generatedFrames));
+    
+    // Manage step validation dynamically
+    document.getElementById("step1NextBtn").disabled = (generatedFrames.length === 0);
+}
+
+function saveHistoryState() {
+    let stateSnap = stageObjects.map(obj => ({ ...obj }));
+    historyStateUndoStack.push(JSON.stringify({ objects: stateSnap, bgColor: frameBackgroundColor }));
+    historyStateRedoStack = []; 
+    updateHistoryButtonsUI();
+}
+
+function triggerCanvasUndo() {
+    if (historyStateUndoStack.length === 0) return;
+    historyStateRedoStack.push(JSON.stringify({ objects: stageObjects.map(obj=>({...obj})), bgColor: frameBackgroundColor }));
+    restoreStateFromData(JSON.parse(historyStateUndoStack.pop()));
+}
+
+function triggerCanvasRedo() {
+    if (historyStateRedoStack.length === 0) return;
+    historyStateUndoStack.push(JSON.stringify({ objects: stageObjects.map(obj=>({...obj})), bgColor: frameBackgroundColor }));
+    restoreStateFromData(JSON.parse(historyStateRedoStack.pop()));
+}
+
+function restoreStateFromData(parsed) {
+    frameBackgroundColor = parsed.bgColor;
+    document.getElementById("customFrameColorInput").value = frameBackgroundColor;
+    stageObjects = parsed.objects.map(o => {
+        if (o.type === 'sticker' && o.imgSrc) {
+            let img = new Image(); img.src = o.imgSrc; o.img = img;
+        }
+        return o;
+    });
+    activeTargetObject = stageObjects[stageObjects.length - 1] || null;
+    syncTextInputsPanel();
+    drawBoothCanvas();
+    updateHistoryButtonsUI();
+}
+
+function updateHistoryButtonsUI() {
+    document.getElementById("canvasUndoButton").disabled = (historyStateUndoStack.length === 0);
+    document.getElementById("canvasRedoButton").disabled = (historyStateRedoStack.length === 0);
+}
+
+function navigateToScreen(stepNum) {
+    activeStep = stepNum;
+    document.querySelectorAll('.booth-screen').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
+    document.getElementById(`screen-${stepNum}`).classList.add('active');
+    document.getElementById(`ind-${stepNum}`).classList.add('active');
+
+    if (stepNum === 2) { 
+        activateUserCameraDevice(); 
+    } else {
+        if (globalAnimationFrameTracker) {
+            cancelAnimationFrame(globalAnimationFrameTracker);
+            globalAnimationFrameTracker = null;
+        }
+    }
+    if (stepNum === 3) { drawBoothCanvas(); }
+    if (stepNum === 4) { renderFinalOutput(); }
+}
+
+function pickLayoutSchema(id, targetElement) {
+    selectedLayoutId = id;
+    document.querySelectorAll('.template-card').forEach(el => el.classList.remove('selected'));
+    targetElement.classList.add('selected');
+    const config = templateRegistry[id];
+    canvas.width = config.w; canvas.height = config.h;
+    
+    if(id === 99) {
+        document.getElementById("step1NextBtn").disabled = (config.frames.length === 0);
+        currentFrameStructure = JSON.parse(JSON.stringify(config.frames));
+    } else {
+        document.getElementById("step1NextBtn").disabled = false;
+        document.getElementById("customHoleMapperTool").style.display = "none";
+        currentFrameStructure = JSON.parse(JSON.stringify(config.frames));
+    }
+}
+
+function activateUserCameraDevice() {
+    if (!isVideoLive && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { width:{ideal:640}, height:{ideal:480}, facingMode:"user" } })
+            .then(stream => { 
+                video.srcObject = stream; 
+                video.play(); 
+                isVideoLive = true;
+                video.onloadedmetadata = () => {
+                    previewCanvas.width = video.videoWidth;
+                    previewCanvas.height = video.videoHeight;
+                    startLivePreviewLoop();
+                };
+            })
+            .catch(() => console.warn("Camera access denied."));
+    } else if (isVideoLive) {
+        startLivePreviewLoop();
+    }
+    checkCameraSlotStatus();
+}
+
+function syncLiveFilterMode() {
+    activeLiveFilterMode = document.getElementById("filterDropdown").value;
+}
+
+function startLivePreviewLoop() {
+    if (!isVideoLive || activeStep !== 2) return;
+    
+    pCtx.save();
+    pCtx.translate(previewCanvas.width, 0);
+    pCtx.scale(-1, 1);
+    pCtx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
+    pCtx.restore();
+
+    if (activeLiveFilterMode !== "none") {
+        let imgData = pCtx.getImageData(0, 0, previewCanvas.width, previewCanvas.height);
+        applyFilterPixelMath(imgData.data, activeLiveFilterMode);
+        pCtx.putImageData(imgData, 0, 0);
+    }
+
+    globalAnimationFrameTracker = requestAnimationFrame(startLivePreviewLoop);
+}
+
+function applyFilterPixelMath(data, filterType) {
+    for (let i = 0; i < data.length; i += 4) {
+        let r = data[i], g = data[i+1], b = data[i+2];
+
+        if (filterType === "creamy") {
+            data[i] = Math.min(255, r * 1.1 + 10);   
+            data[i+1] = Math.min(255, g * 1.05 + 5); 
+            data[i+2] = Math.min(255, b * 0.95);     
+        } else if (filterType === "digicam") {
+            data[i] = Math.min(255, r * 1.2 + 15);
+            data[i+1] = Math.min(255, g * 1.2 + 15);
+            data[i+2] = Math.min(255, b * 1.1 + 10);
+        } else if (filterType === "noir") {
+            let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            gray = gray > 128 ? Math.min(255, gray * 1.4) : gray * 0.6;
+            data[i] = data[i+1] = data[i+2] = gray;
+        } else if (filterType === "mono") {
+            let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            data[i] = data[i+1] = data[i+2] = gray;
+        } else if (filterType === "fuji") {
+            data[i] = Math.min(255, r * 1.05);
+            data[i+1] = Math.min(255, g * 0.95);
+            data[i+2] = Math.min(255, b * 0.9);
+        } else if (filterType === "warm") {
+            data[i] = Math.min(255, r * 1.2);
+            data[i+1] = Math.min(255, g * 1.1);
+            data[i+2] = Math.min(255, b * 0.9);
+        } else if (filterType === "vintage") {
+            data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+            data[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+            data[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+        } else if (filterType === "cyber") {
+            data[i] = Math.min(255, r * 1.3);
+            data[i+1] = Math.min(255, g * 0.8);
+            data[i+2] = Math.min(255, b * 1.4 + 20);
+        } else if (filterType === "cool") {
+            data[i] = Math.min(255, r * 0.85);
+            data[i+1] = Math.min(255, g * 1.05);
+            data[i+2] = Math.min(255, b * 1.25 + 10);
+        }
+    }
+}
+
+function checkCameraSlotStatus() {
+    let nextEmpty = currentFrameStructure.find(f => f.image === null);
+    const triggerBtn = document.getElementById("shutterTriggerBtn");
+    const nextBtn = document.getElementById("goToDecorBtn");
+    const stripContainer = document.getElementById("filmStripScroller");
+    
+    stripContainer.innerHTML = '';
+    currentFrameStructure.forEach((slot) => {
+        const item = document.createElement("div");
+        item.className = `mini-film-slot ${(nextEmpty && nextEmpty.id === slot.id) ? 'active-capture' : ''}`;
+        if (slot.image) {
+            item.innerHTML = `<img src="${slot.image.src}"><button class="retake-btn" onclick="clearSpecificCapturedSlot(${slot.id})">✕</button>`;
+        } else { item.innerHTML = `<span class="slot-number">Slot ${slot.id}</span>`; }
+        stripContainer.appendChild(item);
+    });
+
+    if (nextEmpty) {
+        document.getElementById("camTitlePrompt").innerText = `Capture Slot ${nextEmpty.id} / ${currentFrameStructure.length}`;
+        triggerBtn.disabled = false; nextBtn.disabled = true;
+        const parentConfig = templateRegistry[selectedLayoutId];
+        document.getElementById("dynamicRatioGuide").style.width = `${Math.min((nextEmpty.w / parentConfig.w) * 130, 90)}%`;
+        document.getElementById("dynamicRatioGuide").style.aspectRatio = `${nextEmpty.w} / ${nextEmpty.h}`;
+    } else {
+        document.getElementById("camTitlePrompt").innerText = "🎉 All Slots Captured!";
+        triggerBtn.disabled = true; nextBtn.disabled = false;
+        document.getElementById("dynamicRatioGuide").style.width = "0%";
+    }
+}
+
+function clearSpecificCapturedSlot(slotId) {
+    let slot = currentFrameStructure.find(f => f.id === slotId);
+    if (slot) slot.image = null;
+    checkCameraSlotStatus();
+}
+
+function fireCameraCountdown() {
+    const triggerBtn = document.getElementById("shutterTriggerBtn");
+    const layer = document.getElementById("countdownLayer");
+    const duration = parseInt(document.getElementById("timerDropdown").value, 10);
+    const isContinuous = document.getElementById("continuousCaptureCheckbox").checked;
+    
+    triggerBtn.disabled = true;
+    let nextEmpty = currentFrameStructure.find(f => f.image === null);
+    if (!nextEmpty) return;
+
+    let timeRemains = duration;
+    
+    if (timeRemains === 0) {
+        executeShutterCaptureAction(nextEmpty, isContinuous);
+    } else {
+        layer.className = "shutter-flash counting"; layer.innerText = timeRemains;
+        const timerTick = setInterval(() => {
+            timeRemains--;
+            if (timeRemains > 0) { layer.innerText = timeRemains; } 
+            else {
+                clearInterval(timerTick);
+                executeShutterCaptureAction(nextEmpty, isContinuous);
+            }
+        }, 1000);
+    }
+}
+
+function executeShutterCaptureAction(targetSlot, isContinuous) {
+    const layer = document.getElementById("countdownLayer");
+    layer.className = "shutter-flash flash-burst"; layer.innerText = "";
+    
+    let chosenFilter = document.getElementById("filterDropdown").value;
+    let shouldAddDate = document.getElementById("toggleDateStampCheckbox").checked;
+    
+    isolatePhotoFromActiveCanvasFrame(targetSlot.id, chosenFilter, shouldAddDate, () => {
+        setTimeout(() => { 
+            layer.className = "shutter-flash"; 
+            checkCameraSlotStatus(); 
+            
+            if (isContinuous) {
+                let nextSlot = currentFrameStructure.find(f => f.image === null);
+                if (nextSlot) {
+                    setTimeout(() => { fireCameraCountdown(); }, 800);
+                }
+            }
+        }, 400);
+    });
+}
+
+function isolatePhotoFromActiveCanvasFrame(slotId, filterType, shouldAddDate, callback) {
+    const snapCanvas = document.createElement("canvas");
+    const sCtx = snapCanvas.getContext("2d");
+    
+    snapCanvas.width = previewCanvas.width;
+    snapCanvas.height = previewCanvas.height;
+    
+    sCtx.drawImage(previewCanvas, 0, 0);
+
+    if (shouldAddDate) {
+        sCtx.font = `bold ${Math.max(22, snapCanvas.width * 0.045)}px "Courier Prime", monospace`;
+        sCtx.fillStyle = "#ff6a00";
+        sCtx.textAlign = "right";
+        let d = new Date(), yr = String(d.getFullYear()).slice(-2), mo = String(d.getMonth() + 1).padStart(2, '0'), dy = String(d.getDate()).padStart(2, '0');
+        sCtx.fillText(`'${yr} ${mo} ${dy}`, snapCanvas.width - 20, snapCanvas.height - 20);
+    }
+
+    const imgObj = new Image();
+    imgObj.onload = () => {
+        let slotToFill = currentFrameStructure.find(f => f.id === slotId);
+        if (slotToFill) slotToFill.image = imgObj;
+        if (callback) callback();
+    };
+    imgObj.src = snapCanvas.toDataURL("image/png");
+}
+
+function drawBoothCanvas(targetCtx = ctx, isFinal = false) {
+    // LAYER 1: Core Base Canvas Frame Color Masking Fill
+    targetCtx.fillStyle = frameBackgroundColor;
+    targetCtx.fillRect(0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+
+    // LAYER 2: Live Photoshots drawing inside standard bounding holes
+    currentFrameStructure.forEach(fr => {
+        if (fr.image) {
+            targetCtx.save(); targetCtx.beginPath(); targetCtx.rect(fr.x, fr.y, fr.w, fr.h); targetCtx.clip();
+            let srcW = fr.image.width, srcH = fr.image.height;
+            let targetRatio = fr.w / fr.h, srcRatio = srcW / srcH;
+            let sx, sy, sw, sh;
+            if (srcRatio > targetRatio) { sh = srcH; sw = srcH * targetRatio; sx = (srcW - sw) / 2; sy = 0; } 
+            else { sw = srcW; sh = srcW / targetRatio; sx = 0; sy = (srcH - sh) / 2; }
+            targetCtx.drawImage(fr.image, sx, sy, sw, sh, fr.x, fr.y, fr.w, fr.h);
+            targetCtx.restore();
+        } else {
+            targetCtx.fillStyle = "#22222a"; targetCtx.fillRect(fr.x, fr.y, fr.w, fr.h);
+        }
+        
+        // Hide outline guides on final production export renders
+        if(!selectedTemplateIsCustomPNGMode()) {
+            targetCtx.strokeStyle = frameBackgroundColor; targetCtx.lineWidth = 2; targetCtx.strokeRect(fr.x, fr.y, fr.w, fr.h);
+        }
+    });
+
+    // LAYER 3 [CANVA MODE]: Overlay custom PNG layout graphics over photos
+    if (selectedTemplateIsCustomPNGMode() && customTemplateGlobalImageObject) {
+        targetCtx.drawImage(customTemplateGlobalImageObject, 0, 0, targetCtx.canvas.width, targetCtx.canvas.height);
+    }
+
+    // LAYER 4: Draggable Stage Assets Layering (Text & Stickers)
+    stageObjects.forEach(obj => {
+        targetCtx.save(); 
+        targetCtx.translate(obj.x, obj.y); 
+        targetCtx.rotate(obj.angle);
+        targetCtx.scale(obj.scaleX || 1, obj.scaleY || 1);
+        
+        if (obj.type === 'text') {
+            targetCtx.font = `bold ${obj.fontSize}px ${obj.fontFamily}`; targetCtx.fillStyle = obj.color;
+            targetCtx.textAlign = "center"; targetCtx.textBaseline = "middle"; targetCtx.fillText(obj.text, 0, 0);
+        } else if (obj.type === 'sticker' && obj.img) {
+            targetCtx.drawImage(obj.img, -obj.w/2, -obj.h/2, obj.w, obj.h);
+        }
+        targetCtx.restore();
+        
+        if (!isFinal && obj === activeTargetObject) {
+            targetCtx.save(); 
+            targetCtx.translate(obj.x, obj.y); 
+            targetCtx.rotate(obj.angle);
+            
+            let displayW = obj.w * (obj.scaleX || 1);
+            let displayH = obj.h * (obj.scaleY || 1);
+            
+            targetCtx.strokeStyle = "#007aff"; targetCtx.lineWidth = 1.5; 
+            targetCtx.strokeRect(-displayW/2, -displayH/2, displayW, displayH);
+            
+            // 1. ASUL CIRCLES: Proportional Uniform scaling
+            targetCtx.fillStyle = "#007aff";
+            targetCtx.beginPath(); targetCtx.arc(-displayW/2, -displayH/2, handleRadius, 0, Math.PI*2); targetCtx.fill();
+            targetCtx.beginPath(); targetCtx.arc(-displayW/2, displayH/2, handleRadius, 0, Math.PI*2); targetCtx.fill();
+            targetCtx.beginPath(); targetCtx.arc(displayW/2, -displayH/2, handleRadius, 0, Math.PI*2); targetCtx.fill();
+            targetCtx.beginPath(); targetCtx.arc(displayW/2, displayH/2, handleRadius, 0, Math.PI*2); targetCtx.fill();
+
+            // 2. LILA RECTANGLES (MIDDLE SIDES): Non-proportional pure directional stretching
+            targetCtx.fillStyle = "#da00f7";
+            targetCtx.fillRect(displayW/2 - 5, -6, 10, 12);
+            targetCtx.fillRect(-displayW/2 - 5, -6, 10, 12);
+            targetCtx.fillRect(-6, -displayH/2 - 5, 12, 10);
+            targetCtx.fillRect(-6, displayH/2 - 5, 12, 10);
+
+            // 3. BERDE CIRCLE: Rotation pin
+            targetCtx.fillStyle = "#34c759"; targetCtx.beginPath(); targetCtx.arc(0, -displayH/2 - rotHandleOffset, handleRadius, 0, Math.PI*2); targetCtx.fill();
+            targetCtx.restore();
+        }
+    });
+
+    // Draw active alignment lines if dragging and snapped to center axes
+    if (!isFinal && isHoldingObject && activeInteractionType === 'drag') {
+        targetCtx.save();
+        targetCtx.lineWidth = 1;
+        targetCtx.setLineDash([6, 4]);
+        targetCtx.strokeStyle = "#007aff";
+        
+        if (isCenteredX) {
+            targetCtx.beginPath();
+            targetCtx.moveTo(targetCtx.canvas.width / 2, 0);
+            targetCtx.lineTo(targetCtx.canvas.width / 2, targetCtx.canvas.height);
+            targetCtx.stroke();
+        }
+        if (isCenteredY) {
+            targetCtx.beginPath();
+            targetCtx.moveTo(0, targetCtx.canvas.height / 2);
+            targetCtx.lineTo(targetCtx.canvas.width / 2 * 2, targetCtx.canvas.height / 2);
+            targetCtx.stroke();
+        }
+        targetCtx.restore();
+    }
+}
+
+function selectedTemplateIsCustomPNGMode() {
+    return selectedLayoutId === 99;
+}
+
+function toggleFontDropdownMenu() { document.getElementById("fontDropdownMenu").classList.toggle("show"); }
+function selectFontFromCustomMenu(fontFamily, displayLabel) {
+    saveHistoryState(); selectedFontFamilyValue = fontFamily;
+    const trigger = document.getElementById("fontDropdownTrigger");
+    trigger.innerText = displayLabel; trigger.style.fontFamily = fontFamily;
+    document.getElementById("fontDropdownMenu").classList.remove("show");
+    updateActiveTextObject();
+}
+
+function createNewTextObject(initialText = "SMILE!") {
+    saveHistoryState();
+    let newTextObj = { type: 'text', text: initialText, fontFamily: selectedFontFamilyValue, color: document.getElementById("textCustomColor").value, fontSize: 40, x: canvas.width / 2, y: canvas.height - 100, w: 160, h: 50, angle: 0, scaleX: 1, scaleY: 1 };
+    stageObjects.push(newTextObj); activeTargetObject = newTextObj; syncTextInputsPanel(); drawBoothCanvas();
+}
+
+function updateActiveTextObject() {
+    if (activeTargetObject && activeTargetObject.type === 'text') {
+        activeTargetObject.text = document.getElementById("liveTextContentBox").value;
+        activeTargetObject.color = document.getElementById("textCustomColor").value;
+        activeTargetObject.fontFamily = selectedFontFamilyValue;
+        drawBoothCanvas();
+    }
+}
+
+function syncTextInputsPanel() {
+    if (activeTargetObject && activeTargetObject.type === 'text') { document.getElementById("liveTextContentBox").value = activeTargetObject.text; } 
+    else { document.getElementById("liveTextContentBox").value = "Double-tap object to delete"; }
+}
+
+function modifyCanvasColor(hex, el) { saveHistoryState(); frameBackgroundColor = hex; document.getElementById("customFrameColorInput").value = hex; drawBoothCanvas(); }
+function handleCustomColorChoice(hex) { saveHistoryState(); frameBackgroundColor = hex; drawBoothCanvas(); }
+
+function generateVectorSticker(type) {
+    saveHistoryState();
+    let path = "M12 1.74l3.19 6.46 7.13 1.04-5.16 5.03 1.22 7.1-6.38-3.36-6.38 3.36 1.22-7.1-5.16-5.03 7.13-1.04z";
+    let color = "#ffb703";
+    
+    if (type === 'heart') { path = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z"; color = "#e63946"; }
+    else if (type === 'sparkle') { path = "M12 2s1 5 6 6-6 1-6 6-1-5-6-6 5-1 6-6z"; color = "#00f5d4"; }
+    else if (type === 'crown') { path = "M2 22h20v-2H2v2zm3-4h14l2-8-5 4-4-7-4 7-5-4 2 8z"; color = "#ffe14c"; }
+    else if (type === 'butterfly') { path = "M12 8c.5-2 2.5-5 5.5-5 2.5 0 4.5 2 4.5 4.5 0 3-3.5 6.5-10 9.5-6.5-3-10-6.5-10-9.5C2 5 4 3 6.5 3 9.5 3 11.5 6 12 8z"; color = "#ff70a6"; }
+
+    let url = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='${encodeURIComponent(color)}' d='${path}'/></svg>`;
+    let img = new Image();
+    img.onload = function() {
+        stageObjects.push({ type: 'sticker', img: img, imgSrc: url, x: canvas.width / 2, y: canvas.height / 2, w: 90, h: 90, angle: 0, scaleX: 1, scaleY: 1 });
+        activeTargetObject = stageObjects[stageObjects.length - 1]; drawBoothCanvas();
+    };
+    img.src = url;
+}
+
+function generateEmojiSticker(emojiChar) {
+    saveHistoryState();
+    let newEmojiObj = { type: 'text', text: emojiChar, fontFamily: 'sans-serif', color: '#ffffff', fontSize: 55, x: canvas.width / 2, y: canvas.height / 2, w: 75, h: 75, angle: 0, scaleX: 1, scaleY: 1 };
+    stageObjects.push(newEmojiObj); activeTargetObject = newEmojiObj; drawBoothCanvas();
+}
+
+function setupCanvasInteractions() {
+    function getMousePos(e) {
+        let rect = canvas.getBoundingClientRect();
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+    }
+    function toLocalPos(obj, px, py) {
+        let dx = px - obj.x, dy = py - obj.y;
+        return { x: dx * Math.cos(-obj.angle) - dy * Math.sin(-obj.angle), y: dx * Math.sin(-obj.angle) + dy * Math.cos(-obj.angle) };
+    }
+
+    function onStart(e) {
+        if (activeStep !== 3) return;
+        let pos = getMousePos(e), now = Date.now();
+        
+        if (now - lastTapTime < 250 && activeTargetObject) {
+            let local = toLocalPos(activeTargetObject, pos.x, pos.y);
+            let displayW = activeTargetObject.w * activeTargetObject.scaleX;
+            let displayH = activeTargetObject.h * activeTargetObject.scaleY;
+            if (local.x >= -displayW/1.4 && local.x <= displayW/1.4 && local.y >= -displayH/1.4 && local.y <= displayH/1.4) {
+                saveHistoryState(); stageObjects = stageObjects.filter(o => o !== activeTargetObject); activeTargetObject = null; syncTextInputsPanel(); drawBoothCanvas(); return;
+            }
+        }
+        lastTapTime = now;
+
+        if (activeTargetObject) {
+            let local = toLocalPos(activeTargetObject, pos.x, pos.y);
+            let displayW = activeTargetObject.w * activeTargetObject.scaleX;
+            let displayH = activeTargetObject.h * activeTargetObject.scaleY;
+            
+            // BERDE: Rotation handle
+            if (Math.sqrt((local.x - 0)**2 + (local.y - (-displayH/2 - rotHandleOffset))**2) < 28) {
+                saveHistoryState(); isHoldingObject = true; activeInteractionType = 'rotate';
+                startRotationAngle = Math.atan2(pos.y - activeTargetObject.y, pos.x - activeTargetObject.x); objectStartAngle = activeTargetObject.angle; return;
+            }
+            // ASUL: 4 Sulok para sa Uniform Proportional Resize (Scale)
+            if (Math.sqrt((local.x - (-displayW/2))**2 + (local.y - displayH/2)**2) < 26 || 
+                Math.sqrt((local.x - (-displayW/2))**2 + (local.y - (-displayH/2))**2) < 26 ||
+                Math.sqrt((local.x - displayW/2)**2 + (local.y - displayH/2)**2) < 26 || 
+                Math.sqrt((local.x - displayW/2)**2 + (local.y - (-displayH/2))**2) < 26) {
+                saveHistoryState(); isHoldingObject = true; activeInteractionType = 'scale';
+                objectStartScaleX = activeTargetObject.scaleX; objectStartScaleY = activeTargetObject.scaleY; startDistance = local; return;
+            }
+            // LILA (KANAN/KALIWANG GITNA): Independent X Stretch (Lapad lang)
+            if (Math.sqrt((local.x - displayW/2)**2 + local.y**2) < 26 || 
+                Math.sqrt((local.x - (-displayW/2))**2 + local.y**2) < 26) {
+                saveHistoryState(); isHoldingObject = true; activeInteractionType = 'stretch-x';
+                objectStartScaleX = activeTargetObject.scaleX; startDistance = local; return;
+            }
+            // LILA (TAAS/BABANG GITNA): Independent Y Stretch (Taas lang)
+            if (Math.sqrt(local.x**2 + (local.y - displayH/2)**2) < 26 || 
+                Math.sqrt(local.x**2 + (local.y - (-displayH/2))**2) < 26) {
+                saveHistoryState(); isHoldingObject = true; activeInteractionType = 'stretch-y';
+                objectStartScaleY = activeTargetObject.scaleY; startDistance = local; return;
+            }
+        }
+
+        let match = null;
+        for (let i = stageObjects.length - 1; i >= 0; i--) {
+            let local = toLocalPos(stageObjects[i], pos.x, pos.y);
+            let displayW = stageObjects[i].w * stageObjects[i].scaleX;
+            let displayH = stageObjects[i].h * stageObjects[i].scaleY;
+            if (local.x >= -displayW/2 && local.x <= displayW/2 && local.y >= -displayH/2 && local.y <= displayH/2) { match = stageObjects[i]; break; }
+        }
+        if (match) { saveHistoryState(); activeTargetObject = match; isHoldingObject = true; activeInteractionType = 'drag'; syncTextInputsPanel(); stageObjects = stageObjects.filter(o => o !== match); stageObjects.push(match); } 
+        else { activeTargetObject = null; syncTextInputsPanel(); }
+        drawBoothCanvas();
+    }
+
+    function onMove(e) {
+        if (!isHoldingObject || !activeTargetObject) return;
+        let pos = getMousePos(e), local = toLocalPos(activeTargetObject, pos.x, pos.y);
+        
+        if (activeInteractionType === 'drag') { 
+            let targetX = pos.x;
+            let targetY = pos.y;
+            let midX = canvas.width / 2;
+            let midY = canvas.height / 2;
+            
+            if (Math.abs(targetX - midX) < snapThreshold) {
+                targetX = midX;
+                isCenteredX = true;
+            } else {
+                isCenteredX = false;
+            }
+            
+            if (Math.abs(targetY - midY) < snapThreshold) {
+                targetY = midY;
+                isCenteredY = true;
+            } else {
+                isCenteredY = false;
+            }
+            
+            activeTargetObject.x = targetX; 
+            activeTargetObject.y = targetY; 
+        } 
+        else if (activeInteractionType === 'scale') {
+            let factor = Math.abs(local.x) / Math.abs(startDistance.x);
+            activeTargetObject.scaleX = Math.max(0.2, objectStartScaleX * factor);
+            activeTargetObject.scaleY = Math.max(0.2, objectStartScaleY * factor);
+        } 
+        else if (activeInteractionType === 'stretch-x') {
+            let factor = Math.abs(local.x) / Math.abs(startDistance.x);
+            activeTargetObject.scaleX = Math.max(0.2, objectStartScaleX * factor);
+        }
+        else if (activeInteractionType === 'stretch-y') {
+            let factor = Math.abs(local.y) / Math.abs(startDistance.y);
+            activeTargetObject.scaleY = Math.max(0.2, objectStartScaleY * factor);
+        }
+        else if (activeInteractionType === 'rotate') {
+            activeTargetObject.angle = objectStartAngle + (Math.atan2(pos.y - activeTargetObject.y, pos.x - activeTargetObject.x) - startRotationAngle);
+        }
+        if (e.cancelable) e.preventDefault();
+        drawBoothCanvas();
+    }
+    
+    function onEnd() {
+        isHoldingObject = false;
+        isCenteredX = false;
+        isCenteredY = false;
+        drawBoothCanvas();
+    }
+    
+    canvas.addEventListener("mousedown", onStart); canvas.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onEnd);
+    canvas.addEventListener("touchstart", onStart, { passive: false }); canvas.addEventListener("touchmove", onMove, { passive: false }); window.addEventListener("touchend", onEnd);
+}
+
+function renderFinalOutput() { let fCtx = finalCanvas.getContext("2d"); finalCanvas.width = canvas.width; finalCanvas.height = canvas.height; drawBoothCanvas(fCtx, true); }
+function triggerImageDownload() { let a = document.createElement("a"); a.download = "photobooth.png"; a.href = finalCanvas.toDataURL("image/png"); a.click(); }
+function resetEntireBoothProcess() { currentFrameStructure.forEach(f => f.image = null); stageObjects = []; activeTargetObject = null; navigateToScreen(1); }
+</script>
+</body>
+</html>
