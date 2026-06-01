@@ -267,21 +267,21 @@ canvas.main-workspace {
                 
                 <select id="filterDropdown" style="flex:1; padding:10px; background:#22222a; border:1px solid #363644; color:#fff; font-size:12px; border-radius:8px; outline:none;" onchange="syncLiveFilterMode()">
                     <option value="none">🎬 Normal</option>
-                    <option value="creamy">🍦 Creamy Soft</option>
-                    <option value="cyber">🌆 Retro Cyber</option>
-                    <option value="noir">⚫ Dramatic Noir</option>
-                    <option value="digicam">📸 Digicam Flash</option>
-                    <option value="fuji">🎞️ Fuji Chrome</option>
-                    <option value="sepia">⏳ Vintage Sepia</option>
-                    <option value="velvet">🔥 Velvet Warm</option>
-                    <option value="polar">❄️ Cool Polar</option>
-                    <option value="lomo">🎡 Lomo Vivid</option>
-                    <option value="vivid">🌈 Super Vivid</option>
-                    <option value="matte">🎨 Soft Matte</option>
                     <option value="bronze">🍂 Bronze Tone</option>
-                    <option value="dreamy">✨ Dreamy Glow</option>
                     <option value="candy">🍭 Candy Pop</option>
+                    <option value="polar">❄️ Cool Polar</option>
+                    <option value="creamy">🍦 Creamy Soft</option>
+                    <option value="digicam">📸 Digicam Flash</option>
+                    <option value="noir">⚫ Dramatic Noir</option>
+                    <option value="dreamy">✨ Dreamy Glow</option>
+                    <option value="fuji">🎞️ Fuji Chrome</option>
+                    <option value="lomo">🎡 Lomo Vivid</option>
+                    <option value="cyber">🌆 Retro Cyber</option>
+                    <option value="matte">🎨 Soft Matte</option>
+                    <option value="vivid">🌈 Super Vivid</option>
                     <option value="teal">🌊 Teal & Orange</option>
+                    <option value="velvet">🔥 Velvet Warm</option>
+                    <option value="sepia">⏳ Vintage Sepia</option>
                 </select>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
@@ -333,26 +333,56 @@ canvas.main-workspace {
             <div class="ui-controls-row">
                 <div class="font-dropdown-wrapper">
                     <select id="stickerFontInput" class="font-dropdown-select" onchange="updateLiveSelectedFontInline()">
-                        <option value="Dancing Script" style="font-family: 'Dancing Script';">Dancing Script (Cursive)</option>
-                        <option value="Great Vibes" style="font-family: 'Great Vibes';">Great Vibes (Elegant)</option>
                         <option value="Alex Brush" style="font-family: 'Alex Brush';">Alex Brush (Cursive)</option>
+                        <option value="Allura" style="font-family: 'Allura';">Allura (Cursive)</option>
+                        <option value="Antonio" style="font-family: 'Antonio'; font-weight: bold;">Antonio Bold</option>
+                        <option value="Dancing Script" style="font-family: 'Dancing Script';">Dancing Script (Cursive)</option>
+                        <option value="Fredoka" style="font-family: 'Fredoka';">Fredoka Rounded</option>
+                        <option value="Great Vibes" style="font-family: 'Great Vibes';">Great Vibes (Elegant)</option>
+                        <option value="Monsieur La Doulaise" style="font-family: 'Monsieur La Doulaise';">M. La Doulaise</option>
+                        <option value="Orbitron" style="font-family: 'Orbitron'; font-weight: bold;">Orbitron Future</option>
                         <option value="Pacifico" style="font-family: 'Pacifico';">Pacifico (Retro Pop)</option>
                         <option value="Parisienne" style="font-family: 'Parisienne';">Parisienne (Fancy)</option>
-                        <option value="Allura" style="font-family: 'Allura';">Allura (Cursive)</option>
                         <option value="Pinyon Script" style="font-family: 'Pinyon Script';">Pinyon Script</option>
-                        <option value="Monsieur La Doulaise" style="font-family: 'Monsieur La Doulaise';">M. La Doulaise</option>
                         <option value="Courier Prime" style="font-family: 'Courier Prime'; font-weight: bold;">📟 Retro Monospace</option>
-                        <option value="Antonio" style="font-family: 'Antonio'; font-weight: bold;">Antonio Bold</option>
-                        <option value="Fredoka" style="font-family: 'Fredoka';">Fredoka Rounded</option>
-                        <option value="Orbitron" style="font-family: 'Orbitron'; font-weight: bold;">Orbitron Future</option>
                         <option value="Righteous" style="font-family: 'Righteous';">Righteous Modern</option>
                     </select>
                 </div>
-                <div class="color-picker-wrapper">
+                <div class="color-picker-wrapper" title="Text fill color">
                     <input type="color" id="stickerColorInput" value="#ffffff" onchange="updateLiveSelectedFontInline()">
                 </div>
+                <div class="color-picker-wrapper" title="Outline color" style="border-color:#007aff22;">
+                    <input type="color" id="stickerStrokeColorInput" value="#000000" onchange="updateLiveSelectedFontInline()">
+                </div>
             </div>
-            <button class="btn-add-text-blue" onclick="addStickerTextToCanvas()"><span class="plus-icon">+</span> Add New Text</button>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                <span style="font-size:11px; color:#8a8d9a; font-weight:700; white-space:nowrap;">OUTLINE</span>
+                <input type="range" id="stickerStrokeWidthSlider" min="0" max="20" value="0" step="0.5"
+                    oninput="applyLiveStroke(this.value)" onchange="pushActiveStateToTimeline()"
+                    style="flex:1; accent-color:#007aff; cursor:pointer; height:4px;">
+                <span id="stickerStrokeWidthLabel" style="font-size:12px; font-weight:700; color:#007aff; min-width:28px; text-align:right;">0</span>
+            </div>
+                <!-- CENTER SNAP TOGGLE -->
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
+                    <span style="font-size:11px; color:#8a8d9a; font-weight:700;">CENTER SNAP</span>
+                    <button id="centerSnapToggleBtn" onclick="toggleCenterSnap()" style="padding:3px 12px; border-radius:12px; border:none; cursor:pointer; font-size:11px; font-weight:700; background:#007aff; color:#fff;">ON</button>
+                </div>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:6px; background:#252632; border:1px solid #323446; border-radius:6px; padding:6px 10px; flex-shrink:0;">
+                    <label style="font-size:11px; color:#8a8d9a; font-weight:700; white-space:nowrap;">Size</label>
+                    <input type="number" id="stickerFontSizeInput" min="10" max="200" value="36"
+                        style="width:52px; background:transparent; border:none; color:#fff; font-size:14px; font-weight:700; outline:none; text-align:center;"
+                        oninput="applyLiveFontSize(this.value)" onchange="pushActiveStateToTimeline()">
+                </div>
+                <button class="btn-add-text-blue" style="flex:1;" onclick="addStickerTextToCanvas()"><span class="plus-icon">+</span> Add New Text</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                <span style="font-size:11px; color:#8a8d9a; font-weight:700; white-space:nowrap;">RESIZE</span>
+                <input type="range" id="stickerFontSizeSlider" min="10" max="200" value="36"
+                    oninput="applyLiveFontSize(this.value)" onchange="pushActiveStateToTimeline()"
+                    style="flex:1; accent-color:#007aff; cursor:pointer; height:4px;">
+                <span id="stickerFontSizeLabel" style="font-size:12px; font-weight:700; color:#007aff; min-width:30px; text-align:right;">36</span>
+            </div>
         </div>
 
         <div class="canvas-scroll-container">
@@ -471,6 +501,7 @@ let undoHistoryTimelineStack = [];
 let redoHistoryTimelineStack = [];
 let showCenterGuideX = false;
 let showCenterGuideY = false;
+let centerSnapEnabled = true;
 
 const templateRegistry = {
     1: { w: 500, h: 650, frames: [
@@ -603,12 +634,55 @@ function updateDropdownVisualStyles() {
     selector.style.fontFamily = selector.value;
 }
 
+function applyLiveFontSize(val) {
+    let size = Math.max(10, Math.min(200, parseInt(val) || 10));
+    let numInput = document.getElementById("stickerFontSizeInput");
+    let slider = document.getElementById("stickerFontSizeSlider");
+    let label = document.getElementById("stickerFontSizeLabel");
+    if (numInput) numInput.value = size;
+    if (slider) slider.value = size;
+    if (label) label.textContent = size;
+    if (activeTargetSticker) {
+        activeTargetSticker.fontSize = size;
+        let tempCtx = step3Canvas.getContext("2d");
+        tempCtx.font = `${size}px "${activeTargetSticker.font}"`;
+        activeTargetSticker.boxW = (tempCtx.measureText(activeTargetSticker.text).width || 100) + 24;
+        activeTargetSticker.boxH = (size * 1.2) + 12;
+        triggerLiveOverlayRedraw();
+    }
+}
+
+function toggleCenterSnap() {
+    centerSnapEnabled = !centerSnapEnabled;
+    let btn = document.getElementById('centerSnapToggleBtn');
+    if (btn) {
+        btn.textContent = centerSnapEnabled ? 'ON' : 'OFF';
+        btn.style.background = centerSnapEnabled ? '#007aff' : '#636366';
+    }
+    if (!centerSnapEnabled) { showCenterGuideX = false; showCenterGuideY = false; }
+    triggerLiveOverlayRedraw();
+}
+
+function applyLiveStroke(val) {
+    let sw = Math.max(0, parseFloat(val) || 0);
+    let slider = document.getElementById("stickerStrokeWidthSlider");
+    let label = document.getElementById("stickerStrokeWidthLabel");
+    if (slider) slider.value = sw;
+    if (label) label.textContent = sw;
+    if (activeTargetSticker) {
+        activeTargetSticker.strokeWidth = sw;
+        activeTargetSticker.strokeColor = document.getElementById("stickerStrokeColorInput").value || "#000000";
+        triggerLiveOverlayRedraw();
+    }
+}
+
 function updateLiveSelectedFontInline() {
     updateDropdownVisualStyles();
     if (activeTargetSticker) {
         pushActiveStateToTimeline(); 
         activeTargetSticker.font = document.getElementById("stickerFontInput").value;
         activeTargetSticker.color = document.getElementById("stickerColorInput").value;
+        activeTargetSticker.strokeColor = document.getElementById("stickerStrokeColorInput").value || "#000000";
         
         let tempCtx = step3Canvas.getContext("2d");
         tempCtx.font = `${activeTargetSticker.fontSize}px "${activeTargetSticker.font}"`;
@@ -705,19 +779,23 @@ function addStickerTextToCanvas() {
     
     let activeConfig = templateRegistry[selectedLayoutId];
     let selectedFont = document.getElementById("stickerFontInput").value;
+    let sizeInput = document.getElementById("stickerFontSizeInput");
+    let chosenSize = sizeInput ? Math.max(10, Math.min(200, parseInt(sizeInput.value) || 36)) : 36;
     
     let tempCtx = step3Canvas.getContext("2d");
-    tempCtx.font = `36px "${selectedFont}"`;
+    tempCtx.font = `${chosenSize}px "${selectedFont}"`;
     let textWidth = tempCtx.measureText(rawStr).width || 150;
 
     let newSticker = {
         id: Date.now(),
         text: rawStr,
         color: document.getElementById("stickerColorInput").value,
+        strokeColor: document.getElementById("stickerStrokeColorInput").value,
+        strokeWidth: parseFloat(document.getElementById("stickerStrokeWidthSlider").value) || 0,
         font: selectedFont,
         x: activeConfig.w / 2,
         y: activeConfig.h / 2,
-        fontSize: 36,
+        fontSize: chosenSize,
         angle: 0, 
         scaleX: 1.0, 
         scaleY: 1.0, 
@@ -727,6 +805,10 @@ function addStickerTextToCanvas() {
     
     stickerTextList.push(newSticker);
     activeTargetSticker = newSticker;
+    let addedSlider = document.getElementById("stickerFontSizeSlider");
+    let addedLabel = document.getElementById("stickerFontSizeLabel");
+    if (addedSlider) addedSlider.value = newSticker.fontSize;
+    if (addedLabel) addedLabel.textContent = Math.round(newSticker.fontSize);
     triggerLiveOverlayRedraw();
 }
 
@@ -1063,6 +1145,7 @@ function setupStickerDragAndTransformListeners() {
 
     function handleMove(e) {
         if (!activeTargetSticker || activeStep !== 3) return;
+        if (transformActionNode === "none") return;
         let coords = getCanvasCoordinates(e);
         let cos = Math.cos(activeTargetSticker.angle);
         let sin = Math.sin(activeTargetSticker.angle);
@@ -1076,11 +1159,16 @@ function setupStickerDragAndTransformListeners() {
             activeTargetSticker.x = coords.x - mouseOffsetPointer.x;
             activeTargetSticker.y = coords.y - mouseOffsetPointer.y;
             const cfg = templateRegistry[selectedLayoutId];
-            const snapThreshold = 12;
-            showCenterGuideX = Math.abs(activeTargetSticker.x - cfg.w / 2) < snapThreshold;
-            showCenterGuideY = Math.abs(activeTargetSticker.y - cfg.h / 2) < snapThreshold;
-            if (showCenterGuideX) activeTargetSticker.x = cfg.w / 2;
-            if (showCenterGuideY) activeTargetSticker.y = cfg.h / 2;
+            if (centerSnapEnabled) {
+                const snapThreshold = 12;
+                showCenterGuideX = Math.abs(activeTargetSticker.x - cfg.w / 2) < snapThreshold;
+                showCenterGuideY = Math.abs(activeTargetSticker.y - cfg.h / 2) < snapThreshold;
+                if (showCenterGuideX) activeTargetSticker.x = cfg.w / 2;
+                if (showCenterGuideY) activeTargetSticker.y = cfg.h / 2;
+            } else {
+                showCenterGuideX = false;
+                showCenterGuideY = false;
+            }
         } 
         else if (transformActionNode === "rotate") {
             let currentMouseAngle = Math.atan2(coords.y - activeTargetSticker.y, coords.x - activeTargetSticker.x);
@@ -1143,6 +1231,20 @@ function setupStickerDragAndTransformListeners() {
         textInputField.value = stk.text;
         document.getElementById("stickerFontInput").value = stk.font;
         document.getElementById("stickerColorInput").value = stk.color;
+        let sizeVal = Math.round(stk.fontSize);
+        let sizeInput = document.getElementById("stickerFontSizeInput");
+        let sizeSlider = document.getElementById("stickerFontSizeSlider");
+        let sizeLabel = document.getElementById("stickerFontSizeLabel");
+        if (sizeInput) sizeInput.value = sizeVal;
+        if (sizeSlider) sizeSlider.value = sizeVal;
+        if (sizeLabel) sizeLabel.textContent = sizeVal;
+        let strokeW = stk.strokeWidth || 0;
+        let strokeColorEl = document.getElementById("stickerStrokeColorInput");
+        let strokeSlider = document.getElementById("stickerStrokeWidthSlider");
+        let strokeLabel = document.getElementById("stickerStrokeWidthLabel");
+        if (strokeColorEl) strokeColorEl.value = stk.strokeColor || "#000000";
+        if (strokeSlider) strokeSlider.value = strokeW;
+        if (strokeLabel) strokeLabel.textContent = strokeW;
         updateDropdownVisualStyles();
     }
 
@@ -1572,10 +1674,17 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
                 targetCtx.restore();
             }
 
-            targetCtx.fillStyle = stk.color;
             targetCtx.textAlign = "center";
             targetCtx.textBaseline = "middle";
             targetCtx.font = `${stk.fontSize * scale}px "${stk.font}", sans-serif`;
+            let sw = (stk.strokeWidth || 0) * scale;
+            if (sw > 0) {
+                targetCtx.lineJoin = "round";
+                targetCtx.lineWidth = sw * 2;
+                targetCtx.strokeStyle = stk.strokeColor || "#000000";
+                targetCtx.strokeText(stk.text, 0, 0);
+            }
+            targetCtx.fillStyle = stk.color;
             targetCtx.fillText(stk.text, 0, 0);
             targetCtx.restore();
         });
