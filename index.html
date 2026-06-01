@@ -94,7 +94,7 @@ body{background:#0b0b0d; color:#f4f4f7; padding:12px; min-height:100vh; display:
     width: 100%; display: flex; flex-direction: column; align-items: center; overflow: auto; padding: 4px; margin-bottom: 12px; position: relative;
 }
 canvas.main-workspace {
-    background: #fff; border-radius: 8px; display: block; box-shadow: 0 6px 20px rgba(0,0,0,0.5); width: 260px !important; height: auto !important;
+    background: #fff; border-radius: 8px; display: block; box-shadow: 0 6px 20px rgba(0,0,0,0.5); width: 260px !important; height: auto !important; touch-action: none;
 }
 
 .history-control-bar {
@@ -144,6 +144,67 @@ canvas.main-workspace {
 .btn-next { background: #007aff; color: white; }
 .btn-next:disabled { background: #1f1f26; color: #555; cursor: not-allowed; }
 .btn-download { background: #34c759; color: white; width: 100%; font-size: 14px; font-weight: 700; padding: 14px; }
+
+.add-custom-card {
+    background: #141419; border: 2px dashed #007aff; border-radius: 10px; padding: 8px;
+    text-align: center; width: 90px; flex-shrink: 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.15s ease; min-height: 90px;
+}
+.add-custom-card:hover { background: #1a2638; border-color: #34c759; }
+.add-custom-card .plus-big { font-size: 26px; line-height: 1; color: #007aff; }
+.add-custom-card .add-label { font-size: 10px; font-weight: 700; color: #007aff; }
+.add-custom-card .add-sub { font-size: 9px; color: #34c759; font-weight: 700; background: rgba(52,199,89,0.12); padding: 2px 6px; border-radius: 4px; }
+
+.custom-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.92); overflow-y: auto; padding: 16px;
+    align-items: flex-start; justify-content: center;
+}
+.custom-modal-overlay.open { display: flex; }
+.custom-modal-box {
+    background: #141419; border: 1px solid #272732; border-radius: 16px;
+    padding: 16px; width: 100%; max-width: 430px; margin: auto;
+}
+.custom-modal-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.custom-modal-sub { font-size: 11px; color: #a1a1aa; margin-bottom: 14px; }
+.custom-upload-area {
+    border: 2px dashed #363646; border-radius: 12px; padding: 28px 16px;
+    text-align: center; cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; gap: 8px; margin-bottom: 14px; transition: all 0.15s;
+}
+.custom-upload-area:hover { border-color: #007aff; background: #1a2638; }
+.custom-upload-icon { font-size: 32px; }
+.custom-upload-label { font-size: 13px; color: #d4d4d8; font-weight: 600; }
+.custom-upload-hint { font-size: 10px; color: #71717a; }
+.custom-draw-area { display: none; margin-bottom: 14px; }
+.custom-draw-label { font-size: 11px; color: #a1a1aa; margin-bottom: 8px; font-weight: 600; }
+.custom-draw-canvas-wrap {
+    border-radius: 10px; overflow: hidden; border: 2px solid #363646;
+    cursor: crosshair; display: block; touch-action: none;
+}
+#customDrawCanvas { display: block; max-width: 100%; }
+.custom-slot-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; min-height: 36px; }
+.custom-actions-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.btn-custom-clear {
+    flex: 1; padding: 9px; background: #252632; border: 1px solid #323446; color: #e4e4e7;
+    border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.btn-custom-clear:hover { background: #2d2f3f; }
+.btn-custom-save {
+    flex: 2; padding: 9px; background: #007aff; border: none; color: white;
+    border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; display: none;
+}
+.btn-custom-save:hover { background: #0069d9; }
+.btn-custom-close {
+    width: 100%; padding: 10px; background: #252632; border: 1px solid #323446;
+    color: #a1a1aa; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.custom-tip-box {
+    background: #1a2638; border: 1px solid #1e3a5f; border-radius: 8px; padding: 10px 12px;
+    font-size: 10px; color: #7eb3f5; line-height: 1.5; margin-bottom: 14px;
+}
+
 </style>
 </head>
 <body>
@@ -158,9 +219,9 @@ canvas.main-workspace {
 
     <!-- STEP 1 SCREEN -->
     <div class="booth-screen active" id="screen-1">
-        <h2 class="screen-title">Piliin ang Iyong Layout</h2>
-        <div class="screen-subtitle">Piliin ang nais mong hulmahan at bilang ng litrato</div>
-        <div class="scroll-grid-wrapper">
+        <h2 class="screen-title">Choose Your Layout</h2>
+        <div class="screen-subtitle">Pick your frame shape and number of photos</div>
+        <div class="scroll-grid-wrapper" id="layoutGrid">
             <div class="template-card selected" onclick="pickLayoutSchema(1, this)"><canvas id="thumb-1" class="thumb-canvas" width="50" height="75"></canvas><span class="title-label">Quad Grid</span><span class="count-badge">4 Photos</span></div>
             <div class="template-card" onclick="pickLayoutSchema(2, this)"><canvas id="thumb-2" class="thumb-canvas" width="50" height="150"></canvas><span class="title-label">3-Photo Strip</span><span class="count-badge">3 Photos</span></div>
             <div class="template-card" onclick="pickLayoutSchema(3, this)"><canvas id="thumb-3" class="thumb-canvas" width="50" height="175"></canvas><span class="title-label">4-Photo Strip</span><span class="count-badge">4 Photos</span></div>
@@ -173,14 +234,19 @@ canvas.main-workspace {
             <div class="template-card" onclick="pickLayoutSchema(10, this)"><canvas id="thumb-10" class="thumb-canvas" width="50" height="85"></canvas><span class="title-label">6-Grid Poster</span><span class="count-badge">6 Photos</span></div>
             <div class="template-card" onclick="pickLayoutSchema(11, this)"><canvas id="thumb-11" class="thumb-canvas" width="50" height="190"></canvas><span class="title-label">Mega 5-Strip</span><span class="count-badge">5 Photos</span></div>
             <div class="template-card" onclick="pickLayoutSchema(12, this)"><canvas id="thumb-12" class="thumb-canvas" width="50" height="75"></canvas><span class="title-label">Polaroid Showcase</span><span class="count-badge">1 Photo</span></div>
+            <div class="add-custom-card" id="addCustomCard" onclick="openCustomLayoutModal()">
+                <div class="plus-big">＋</div>
+                <div class="add-label">Custom</div>
+                <div class="add-sub">Canva</div>
+            </div>
         </div>
-        <div class="nav-footer"><button class="btn-nav btn-next" onclick="navigateToScreen(2)">Susunod: Kumuha ng Larawan ➔</button></div>
+        <div class="nav-footer"><button class="btn-nav btn-next" onclick="navigateToScreen(2)">Next: Take Photos ➔</button></div>
     </div>
 
     <!-- STEP 2 SCREEN -->
     <div class="booth-screen" id="screen-2">
         <h2 class="screen-title" id="camTitlePrompt">Capture Live Shots</h2>
-        <div class="screen-subtitle">Igitna ang sarili sa loob ng guide lines</div>
+        <div class="screen-subtitle">Center yourself within the guide lines</div>
         
         <div class="camera-box">
             <video id="boothVideo" autoplay playsinline muted></video>
@@ -200,40 +266,43 @@ canvas.main-workspace {
                 </select>
                 
                 <select id="filterDropdown" style="flex:1; padding:10px; background:#22222a; border:1px solid #363644; color:#fff; font-size:12px; border-radius:8px; outline:none;" onchange="syncLiveFilterMode()">
-                    <option value="none">🎬 Normal Filter</option>
+                    <option value="none">🎬 Normal</option>
                     <option value="creamy">🍦 Creamy Soft</option>
                     <option value="cyber">🌆 Retro Cyber</option>
-                    <option value="noir">🎬 Dramatic Noir</option>
+                    <option value="noir">⚫ Dramatic Noir</option>
                     <option value="digicam">📸 Digicam Flash</option>
                     <option value="fuji">🎞️ Fuji Chrome</option>
                     <option value="sepia">⏳ Vintage Sepia</option>
                     <option value="velvet">🔥 Velvet Warm</option>
                     <option value="polar">❄️ Cool Polar</option>
+                    <option value="lomo">🎡 Lomo Vivid</option>
+                    <option value="vivid">🌈 Super Vivid</option>
+                    <option value="matte">🎨 Soft Matte</option>
+                    <option value="bronze">🍂 Bronze Tone</option>
+                    <option value="dreamy">✨ Dreamy Glow</option>
+                    <option value="candy">🍭 Candy Pop</option>
+                    <option value="teal">🌊 Teal & Orange</option>
                 </select>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-                <div style="flex:1; display:flex; align-items:center; gap:8px; padding:8px; background:#1f1f26; border-radius:8px; border:1px solid #2c2c38;">
-                    <input type="checkbox" id="toggleDateStampCheckbox" checked style="width:16px; height:16px; cursor:pointer;">
-                    <label for="toggleDateStampCheckbox" style="font-size:11px; color:#a1a1aa; font-weight:700; cursor:pointer;">💡 Date Stamp</label>
-                </div>
                 <div style="flex:1; display:flex; align-items:center; gap:8px; padding:8px; background:#1f1f26; border-radius:8px; border:1px solid #2c2c38;">
                     <input type="checkbox" id="continuousCaptureCheckbox" style="width:16px; height:16px; cursor:pointer;">
                     <label for="continuousCaptureCheckbox" style="font-size:11px; color:#007aff; font-weight:700; cursor:pointer;">🔄 Continuous Mode</label>
                 </div>
             </div>
-            <button class="btn-nav btn-next" id="shutterTriggerBtn" style="width:100%; background:#007aff; font-size:13px;" onclick="fireCameraCountdown()">📸 Kunan ng Litrato</button>
+            <button class="btn-nav btn-next" id="shutterTriggerBtn" style="width:100%; background:#007aff; font-size:13px;" onclick="fireCameraCountdown()">📸 Take a Photo</button>
         </div>
         
         <div class="nav-footer">
-            <button class="btn-nav btn-back" onclick="navigateToScreen(1)">⬅ Bumalik</button>
-            <button class="btn-nav btn-next" id="goToDecorBtn" disabled onclick="navigateToScreen(3)">Piliin ang Design ➔</button>
+            <button class="btn-nav btn-back" onclick="navigateToScreen(1)">⬅ Back</button>
+            <button class="btn-nav btn-next" id="goToDecorBtn" disabled onclick="navigateToScreen(3)">Choose a Design ➔</button>
         </div>
     </div>
 
     <!-- STEP 3 SCREEN -->
     <div class="booth-screen" id="screen-3">
-        <h2 class="screen-title">Piliin ang Design Frame & Text Stickers</h2>
-        <div class="screen-subtitle">Gamitin ang 4 na asul na buttons sa gilid para mag-stretch at kanang sulok para lumaki/maliit.</div>
+        <h2 class="screen-title">Choose Design Frame & Text Labels</h2>
+        <div class="screen-subtitle">Use the 4 blue handles to stretch, and the corner handle to resize.</div>
         
         <div class="scroll-grid-wrapper" style="background: #1a1a24; padding: 10px; border-radius: 12px;">
             <div class="design-card selected" onclick="pickDesignStyle('classic', this)"><span style="font-size:20px;">⬜</span><span class="title-label">Minimalist White</span></div>
@@ -241,7 +310,20 @@ canvas.main-workspace {
             <div class="design-card" onclick="pickDesignStyle('filmstrip', this)"><span style="font-size:20px;">🎞️</span><span class="title-label">Retro Film</span></div>
             <div class="design-card" onclick="pickDesignStyle('cream', this)"><span style="font-size:20px;">🧸</span><span class="title-label">Aesthetic Cream</span></div>
             <div class="design-card" onclick="pickDesignStyle('noir', this)"><span style="font-size:20px;">⚫</span><span class="title-label">Classic Noir</span></div>
-            <div class="design-card" onclick="pickDesignStyle('checkerboard', this)"><span style="font-size:20px;">🏁</span><span class="title-label">Retro Checker</span></div>
+            <div class="design-card" onclick="pickDesignStyle('sakura', this)"><span style="font-size:20px;">🌸</span><span class="title-label">Sakura Bloom</span></div>
+            <div class="design-card" onclick="pickDesignStyle('lavender', this)"><span style="font-size:20px;">💜</span><span class="title-label">Dreamy Lavender</span></div>
+            <div class="design-card" onclick="pickDesignStyle('bubblegum', this)"><span style="font-size:20px;">🍬</span><span class="title-label">Bubblegum Dots</span></div>
+            <div class="design-card" onclick="pickDesignStyle('stargirl', this)"><span style="font-size:20px;">✨</span><span class="title-label">Stargirl Night</span></div>
+            <div class="design-card" onclick="pickDesignStyle('cottagecore', this)"><span style="font-size:20px;">🌿</span><span class="title-label">Cottagecore</span></div>
+            <div class="design-card" onclick="pickDesignStyle('vintage', this)"><span style="font-size:20px;">📷</span><span class="title-label">Polaroid Vintage</span></div>
+            <div class="design-card" onclick="pickDesignStyle('angelcore', this)"><span style="font-size:20px;">👼</span><span class="title-label">Angel Core</span></div>
+            <div class="design-card" onclick="pickDesignStyle('pastelwave', this)"><span style="font-size:20px;">🌈</span><span class="title-label">Pastel Wave</span></div>
+            <div class="design-card" onclick="pickDesignStyle('rosegold', this)"><span style="font-size:20px;">🌹</span><span class="title-label">Rose Gold Foil</span></div>
+            <div class="design-card" onclick="pickDesignStyle('fairycore', this)"><span style="font-size:20px;">🧚</span><span class="title-label">Fairycore Magic</span></div>
+            <div class="design-card" onclick="pickDesignStyle('matcha', this)"><span style="font-size:20px;">🍵</span><span class="title-label">Matcha Latte</span></div>
+            <div class="design-card" onclick="pickDesignStyle('babypink', this)"><span style="font-size:20px;">🩷</span><span class="title-label">Baby Pink</span></div>
+            <div class="design-card" onclick="pickDesignStyle('midnightblue', this)"><span style="font-size:20px;">🌌</span><span class="title-label">Midnight Blue</span></div>
+            <div class="design-card" onclick="pickDesignStyle('groovy', this)"><span style="font-size:20px;">🌀</span><span class="title-label">Groovy Retro</span></div>
         </div>
 
         <div class="text-tool-box">
@@ -282,23 +364,79 @@ canvas.main-workspace {
         </div>
 
         <div class="nav-footer">
-            <button class="btn-nav btn-back" onclick="navigateToScreen(2)">⬅ Baguhin ang Litrato</button>
-            <button class="btn-nav btn-next" onclick="navigateToScreen(4)">I-render at I-save ➔</button>
+            <button class="btn-nav btn-back" onclick="navigateToScreen(2)">⬅ Retake Photos</button>
+            <button class="btn-nav btn-next" onclick="navigateToScreen(4)">Finish & Save ➔</button>
         </div>
     </div>
 
     <!-- STEP 4 SCREEN -->
     <div class="booth-screen" id="screen-4">
-        <h2 class="screen-title">Gawa na ang iyong Larawan!</h2>
-        <div class="screen-subtitle">I-click ang berdeng button para i-download sa iyong phone</div>
+        <h2 class="screen-title">Your Photo is Ready!</h2>
+        <div class="screen-subtitle">Tap the green button to download to your phone</div>
         <div class="canvas-scroll-container"><canvas id="boothCanvasFinalCopy" class="main-workspace" width="500" height="750"></canvas></div>
         
         <button class="btn-nav btn-download" onclick="triggerMobileSafeDisplay()">📥 DOWNLOAD / SAVE PHOTO</button>
         
         <div class="nav-footer" style="margin-top:8px;">
-            <button class="btn-nav btn-back" style="background:#2c2c38; color:white;" onclick="navigateToScreen(3)">⬅ Palitan ang Design</button>
-            <button class="btn-nav" style="background:#ff3b30; color:white;" onclick="resetEntireBoothProcess()">🔄 Ulitin Muli</button>
+            <button class="btn-nav btn-back" style="background:#2c2c38; color:white;" onclick="navigateToScreen(3)">⬅ Change Design</button>
+            <button class="btn-nav" style="background:#ff3b30; color:white;" onclick="resetEntireBoothProcess()">🔄 Start Over</button>
         </div>
+    </div>
+</div>
+
+<!-- CUSTOM LAYOUT MODAL -->
+<div class="custom-modal-overlay" id="customLayoutModal">
+    <div class="custom-modal-box">
+        <div class="custom-modal-title">✦ Custom Canva Layout</div>
+        <div class="custom-modal-sub">Upload your Canva design, then draw photo slot boxes on it</div>
+
+        <div class="custom-tip-box">
+            💡 <strong>Tip:</strong> In Canva, delete the photo placeholders so those areas become transparent, then export as <strong>PNG</strong>. Upload here, draw boxes over where photos should appear, then save.
+        </div>
+
+        <div class="custom-upload-area" id="customUploadArea" onclick="document.getElementById('customFileInput').click()">
+            <div class="custom-upload-icon">🖼️</div>
+            <div class="custom-upload-label">Tap to upload your Canva PNG</div>
+            <div class="custom-upload-hint">PNG recommended (supports transparency)</div>
+            <input type="file" id="customFileInput" accept="image/*" style="display:none" onchange="handleCustomFileInput(event)">
+        </div>
+
+        <div class="custom-draw-area" id="customDrawArea">
+            <div class="custom-draw-label">📐 Click a slot to select it, then move or resize. Add slots with the button below:</div>
+            <div class="custom-draw-canvas-wrap">
+                <canvas id="customDrawCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="custom-slot-list" id="customSlotList"></div>
+
+        <div class="custom-actions-row" style="flex-wrap:wrap; gap:6px;">
+            <button class="btn-custom-clear" id="customUndoBtn" onclick="undoCustom()"
+                style="display:none; background:#1e1a2a; border-color:#a78bfa; color:#a78bfa;">↩ Undo</button>
+            <button class="btn-custom-clear" id="customRedoBtn" onclick="redoCustom()"
+                style="display:none; background:#1e1a2a; border-color:#a78bfa; color:#a78bfa;">↪ Redo</button>
+            <button class="btn-custom-clear" onclick="addCustomSlotByButton()"
+                style="background:#1a2f1a; border-color:#34c759; color:#34c759;">＋ Add Slot</button>
+
+            <button class="btn-custom-clear" id="customDuplicateBtn" onclick="duplicateCustomSlot()"
+                style="display:none; background:#1a2638; border-color:#007aff; color:#007aff;">⧉ Duplicate</button>
+            <button class="btn-custom-clear" id="customSnapBtn" onclick="toggleCustomSnap()"
+                title="Snap to grid (20px)"
+                style="background:#252632; border-color:#363646; color:#71717a;">⊞ Snap</button>
+            <button class="btn-custom-clear" onclick="clearCustomSlots()"
+                style="margin-left:auto;">🗑 Clear All</button>
+        </div>
+
+        <div id="customNameRow" style="display:none; margin-bottom:12px;">
+            <label style="display:block;font-size:11px;color:#a1a1aa;font-weight:700;margin-bottom:6px;">LAYOUT NAME</label>
+            <input type="text" id="customLayoutNameInput" maxlength="20" placeholder="e.g. Wedding Frame, Birthday Booth…"
+                style="width:100%;background:#252632;border:1px solid #323446;border-radius:8px;color:#fff;padding:10px 12px;font-size:13px;outline:none;box-sizing:border-box;"
+                onfocus="this.style.borderColor='#007aff'" onblur="this.style.borderColor='#323446'">
+        </div>
+
+        <button class="btn-custom-save" id="customSaveBtn" onclick="saveCustomLayout()">✓ Save Layout</button>
+
+        <button class="btn-custom-close" onclick="closeCustomLayoutModal()">✕ Cancel</button>
     </div>
 </div>
 
@@ -320,6 +458,7 @@ let stickerTextList = [];
 let activeTargetSticker = null;
 let transformActionNode = "none"; 
 let mouseOffsetPointer = { x: 0, y: 0 };
+let stickerMoveStartCoords = { x: 0, y: 0 };
 let initialRotationAngle = 0;
 let initialMouseAngle = 0;
 let lastTapTime = 0;
@@ -330,6 +469,8 @@ let initialScaleY = 1;
 
 let undoHistoryTimelineStack = [];
 let redoHistoryTimelineStack = [];
+let showCenterGuideX = false;
+let showCenterGuideY = false;
 
 const templateRegistry = {
     1: { w: 500, h: 650, frames: [
@@ -356,7 +497,7 @@ const templateRegistry = {
     9: { w: 500, h: 480, frames: [ { id:1, x:25, y:25, w:450, h:320, image:null } ], label: "Wide Cinematic" },
     10: { w: 500, h: 840, frames: [
         { id:1, x:25,  y:25,  w:215, h:230, image:null }, { id:2, x:260, y:25,  w:215, h:230, image:null },
-        { id:3, x:280, y:280, w:215, h:230, image:null }, { id:4, x:260, y:280, w:215, h:230, image:null },
+        { id:3, x:25,  y:280, w:215, h:230, image:null }, { id:4, x:260, y:280, w:215, h:230, image:null },
         { id:5, x:25,  y:535, w:215, h:230, image:null }, { id:6, x:260, y:535, w:215, h:230, image:null }
     ], label: "6-Grid Poster" },
     11: { w: 400, h: 1720, frames: [
@@ -368,18 +509,32 @@ const templateRegistry = {
 };
 
 const designRegistry = {
-    classic: { bgColor: "#ffffff", strokeColor: "#eaeaea" },
-    y2k: { bgColor: "#ff70a6", strokeColor: "#ffffff", isNeon: true },
-    filmstrip: { bgColor: "#111111", strokeColor: "#222", isFilm: true },
-    cream: { bgColor: "#faedcd", strokeColor: "#d4a373" },
-    noir: { bgColor: "#000000", strokeColor: "#333" },
-    checkerboard: { bgColor: "#f0f0f0", strokeColor: "#111111", isPattern: true }
+    classic:      { bgColor: "#ffffff", strokeColor: "#eaeaea" },
+    y2k:          { bgColor: "#ff70a6", strokeColor: "#ffffff", isNeon: true },
+    filmstrip:    { bgColor: "#111111", strokeColor: "#222", isFilm: true },
+    cream:        { bgColor: "#faedcd", strokeColor: "#d4a373" },
+    noir:         { bgColor: "#000000", strokeColor: "#333" },
+    sakura:       { bgColor: "#fff0f6", strokeColor: "#ffb3cc", isSakura: true },
+    lavender:     { bgColor: "#f3eeff", strokeColor: "#c4a8f5", isLavender: true },
+    bubblegum:    { bgColor: "#fff0fb", strokeColor: "#ff5fa2", isBubblegum: true },
+    stargirl:     { bgColor: "#07071a", strokeColor: "#ffd700", isStargirl: true },
+    cottagecore:  { bgColor: "#fdf6ec", strokeColor: "#a07850", isCottagecore: true },
+    vintage:      { bgColor: "#f5efdc", strokeColor: "#c8a96e", isVintage: true },
+    angelcore:    { bgColor: "#ffffff", strokeColor: "#ffd6e7", isAngelcore: true },
+    pastelwave:   { bgColor: "#fde8f5", strokeColor: "#b5e8f7", isPastelwave: true },
+    rosegold:     { bgColor: "#fff5f0", strokeColor: "#c9876a", isRosegold: true },
+    fairycore:    { bgColor: "#fef0ff", strokeColor: "#d4a0ff", isFairycore: true },
+    matcha:       { bgColor: "#f0f7ee", strokeColor: "#7aab6a", isMatcha: true },
+    babypink:     { bgColor: "#fff0f5", strokeColor: "#ffadc5", isBabypink: true },
+    midnightblue: { bgColor: "#070b1a", strokeColor: "#3a6bc9", isMidnightblue: true },
+    groovy:       { bgColor: "#fff9e6", strokeColor: "#e05c2a", isGroovy: true }
 };
 
 let currentFrameStructure = JSON.parse(JSON.stringify(templateRegistry[1].frames));
 
 window.onload = function() {
     buildMiniLayoutPreviews();
+    restoreCustomLayouts();
     setupStickerDragAndTransformListeners();
     updateDropdownVisualStyles();
     setupTextInputLiveSyncListener();
@@ -635,7 +790,22 @@ function applyFilterPixelMath(data, filterType) {
         } else if (filterType === "velvet") {
             data[i] = Math.min(255, r * 1.2); data[i+1] = Math.min(255, g * 0.9); data[i+2] = Math.min(255, b * 0.8);
         } else if (filterType === "polar") {
-            data[i] = Math.min(255, r * 0.8) ; data[i+1] = Math.min(255, g * 1.1); data[i+2] = Math.min(255, b * 1.3);
+            data[i] = Math.min(255, r * 0.8); data[i+1] = Math.min(255, g * 1.1); data[i+2] = Math.min(255, b * 1.3);
+        } else if (filterType === "lomo") {
+            data[i] = Math.min(255, r * 1.4); data[i+1] = Math.min(255, g * 0.85); data[i+2] = Math.min(255, b * 0.7);
+        } else if (filterType === "vivid") {
+            let avg = (r + g + b) / 3;
+            data[i] = Math.min(255, avg + (r - avg) * 2.2); data[i+1] = Math.min(255, avg + (g - avg) * 2.2); data[i+2] = Math.min(255, avg + (b - avg) * 2.2);
+        } else if (filterType === "matte") {
+            data[i] = Math.min(255, r * 0.88 + 28); data[i+1] = Math.min(255, g * 0.88 + 28); data[i+2] = Math.min(255, b * 0.88 + 28);
+        } else if (filterType === "bronze") {
+            data[i] = Math.min(255, r * 1.25 + 20); data[i+1] = Math.min(255, g * 1.0 + 5); data[i+2] = Math.min(255, b * 0.6);
+        } else if (filterType === "dreamy") {
+            data[i] = Math.min(255, r * 1.1 + 18); data[i+1] = Math.min(255, g * 0.95 + 12); data[i+2] = Math.min(255, b * 1.15 + 18);
+        } else if (filterType === "candy") {
+            data[i] = Math.min(255, r * 1.2 + 20); data[i+1] = Math.min(255, g * 1.1 + 10); data[i+2] = Math.min(255, b * 1.3 + 30);
+        } else if (filterType === "teal") {
+            data[i] = Math.min(255, r * 1.3); data[i+1] = Math.min(255, g * 1.05); data[i+2] = Math.min(255, b * 0.75);
         }
     }
 }
@@ -663,7 +833,7 @@ function checkCameraSlotStatus() {
         document.getElementById("dynamicRatioGuide").style.width = `${Math.min((nextEmpty.w / parentConfig.w) * 130, 90)}%`;
         document.getElementById("dynamicRatioGuide").style.aspectRatio = `${nextEmpty.w} / ${nextEmpty.h}`;
     } else {
-        document.getElementById("camTitlePrompt").innerText = "Tapos na ang pagkuha ng lahat ng litrato!";
+        document.getElementById("camTitlePrompt").innerText = "All photos captured!";
         triggerBtn.disabled = true; nextBtn.disabled = false;
         document.getElementById("dynamicRatioGuide").style.width = "0%";
     }
@@ -706,7 +876,7 @@ function executeShutterCaptureAction(targetSlot, isContinuous) {
     layer.className = "shutter-flash flash-burst"; layer.innerText = "";
     
     let chosenFilter = document.getElementById("filterDropdown").value;
-    let shouldAddDate = document.getElementById("toggleDateStampCheckbox").checked;
+    let shouldAddDate = false;
     
     isolatePhotoFromActiveCanvasFrame(targetSlot.id, chosenFilter, shouldAddDate, () => {
         setTimeout(() => { 
@@ -777,18 +947,17 @@ function setupStickerDragAndTransformListeners() {
         }
         lastTapTime = currentTime;
 
-        for (let i = stickerTextList.length - 1; i >= 0; i--) {
-            let stk = stickerTextList[i];
+        // Check handles only for the currently active sticker
+        if (activeTargetSticker) {
+            let stk = activeTargetSticker;
             let cos = Math.cos(stk.angle);
             let sin = Math.sin(stk.angle);
-
             let rotLocalX = 0;
             let rotLocalY = -stk.boxH / 2 - 22;
             let rotGlobalX = stk.x + (rotLocalX * cos - rotLocalY * sin);
             let rotGlobalY = stk.y + (rotLocalX * sin + rotLocalY * cos);
-            if (Math.hypot(coords.x - rotGlobalX, coords.y - rotGlobalY) < 18) {
+            if (Math.hypot(coords.x - rotGlobalX, coords.y - rotGlobalY) < 30) {
                 pushActiveStateToTimeline();
-                activeTargetSticker = stk;
                 transformActionNode = "rotate";
                 initialRotationAngle = stk.angle;
                 initialMouseAngle = Math.atan2(coords.y - stk.y, coords.x - stk.x);
@@ -796,82 +965,68 @@ function setupStickerDragAndTransformListeners() {
                 e.preventDefault();
                 return;
             }
-
-            let rStretchLocalX = stk.boxW / 2;
+            let rStretchLocalX = stk.boxW / 2 * stk.scaleX;
             let rStretchLocalY = 0;
             let rStretchGlobalX = stk.x + (rStretchLocalX * cos - rStretchLocalY * sin);
             let rStretchGlobalY = stk.y + (rStretchLocalX * sin + rStretchLocalY * cos);
-            if (Math.hypot(coords.x - rStretchGlobalX, coords.y - rStretchGlobalY) < 18) {
+            if (Math.hypot(coords.x - rStretchGlobalX, coords.y - rStretchGlobalY) < 30) {
                 pushActiveStateToTimeline();
-                activeTargetSticker = stk;
                 transformActionNode = "stretchRight";
-                let dx = coords.x - stk.x;
-                let dy = coords.y - stk.y;
-                initialMouseAngle = dx * cos + dy * sin; 
+                let dx = coords.x - stk.x; let dy = coords.y - stk.y;
+                initialMouseAngle = dx * cos + dy * sin;
                 initialScaleX = stk.scaleX;
                 syncStickerPanelSettings(stk);
                 e.preventDefault();
                 return;
             }
-
-            let lStretchLocalX = -stk.boxW / 2;
+            let lStretchLocalX = -stk.boxW / 2 * stk.scaleX;
             let lStretchLocalY = 0;
             let lStretchGlobalX = stk.x + (lStretchLocalX * cos - lStretchLocalY * sin);
             let lStretchGlobalY = stk.y + (lStretchLocalX * sin + lStretchLocalY * cos);
-            if (Math.hypot(coords.x - lStretchGlobalX, coords.y - lStretchGlobalY) < 18) {
+            if (Math.hypot(coords.x - lStretchGlobalX, coords.y - lStretchGlobalY) < 30) {
                 pushActiveStateToTimeline();
-                activeTargetSticker = stk;
                 transformActionNode = "stretchLeft";
-                let dx = coords.x - stk.x;
-                let dy = coords.y - stk.y;
-                initialMouseAngle = dx * cos + dy * sin; 
+                let dx = coords.x - stk.x; let dy = coords.y - stk.y;
+                initialMouseAngle = dx * cos + dy * sin;
                 initialScaleX = stk.scaleX;
                 syncStickerPanelSettings(stk);
                 e.preventDefault();
                 return;
             }
-
             let bStretchLocalX = 0;
-            let bStretchLocalY = stk.boxH / 2;
+            let bStretchLocalY = stk.boxH / 2 * stk.scaleY;
             let bStretchGlobalX = stk.x + (bStretchLocalX * cos - bStretchLocalY * sin);
             let bStretchGlobalY = stk.y + (bStretchLocalX * sin + bStretchLocalY * cos);
-            if (Math.hypot(coords.x - bStretchGlobalX, coords.y - bStretchGlobalY) < 18) {
+            if (Math.hypot(coords.x - bStretchGlobalX, coords.y - bStretchGlobalY) < 30) {
                 pushActiveStateToTimeline();
-                activeTargetSticker = stk;
                 transformActionNode = "stretchBottom";
-                let dx = coords.x - stk.x;
-                let dy = coords.y - stk.y;
-                initialMouseAngle = -dx * sin + dy * cos; 
+                let dx = coords.x - stk.x; let dy = coords.y - stk.y;
+                initialMouseAngle = -dx * sin + dy * cos;
                 initialScaleY = stk.scaleY;
                 syncStickerPanelSettings(stk);
                 e.preventDefault();
                 return;
             }
-
             let tStretchLocalX = 0;
-            let tStretchLocalY = -stk.boxH / 2;
+            let tStretchLocalY = -stk.boxH / 2 * stk.scaleY;
             let tStretchGlobalX = stk.x + (tStretchLocalX * cos - tStretchLocalY * sin);
             let tStretchGlobalY = stk.y + (tStretchLocalX * sin + tStretchLocalY * cos);
-            if (Math.hypot(coords.x - tStretchGlobalX, coords.y - tStretchGlobalY) < 18) {
+            if (Math.hypot(coords.x - tStretchGlobalX, coords.y - tStretchGlobalY) < 30) {
                 pushActiveStateToTimeline();
-                activeTargetSticker = stk;
                 transformActionNode = "stretchTop";
-                let dx = coords.x - stk.x;
-                let dy = coords.y - stk.y;
-                initialMouseAngle = -dx * sin + dy * cos; 
+                let dx = coords.x - stk.x; let dy = coords.y - stk.y;
+                initialMouseAngle = -dx * sin + dy * cos;
                 initialScaleY = stk.scaleY;
                 syncStickerPanelSettings(stk);
                 e.preventDefault();
                 return;
             }
-
-            let scaleLocalX = stk.boxW / 2;
-            let scaleLocalY = stk.boxH / 2;
-            let scaleGlobalX = stk.x + (scaleLocalX * cos - scaleLocalY * sin);
-            let scaleGlobalY = stk.y + (scaleLocalX * sin + scaleLocalY * cos);
-            if (Math.hypot(coords.x - scaleGlobalX, coords.y - scaleGlobalY) < 18) {
+            let scaleLocalX2 = stk.boxW / 2 * stk.scaleX;
+            let scaleLocalY2 = stk.boxH / 2 * stk.scaleY;
+            let scaleGlobalX2 = stk.x + (scaleLocalX2 * cos - scaleLocalY2 * sin);
+            let scaleGlobalY2 = stk.y + (scaleLocalX2 * sin + scaleLocalY2 * cos);
+            if (Math.hypot(coords.x - scaleGlobalX2, coords.y - scaleGlobalY2) < 30) {
                 pushActiveStateToTimeline();
-                activeTargetSticker = stk;
                 transformActionNode = "diagonalScale";
                 initialMouseAngle = Math.hypot(coords.x - stk.x, coords.y - stk.y);
                 initialBaseSize = stk.fontSize;
@@ -879,13 +1034,21 @@ function setupStickerDragAndTransformListeners() {
                 e.preventDefault();
                 return;
             }
+        }
+
+        // Check ALL stickers for body hit (drag — works even without prior selection)
+        for (let i = stickerTextList.length - 1; i >= 0; i--) {
+            let stk = stickerTextList[i];
+            let cos = Math.cos(stk.angle);
+            let sin = Math.sin(stk.angle);
 
             if (checkIfPointIsInsideStickerBox(coords.x, coords.y, stk)) {
                 pushActiveStateToTimeline();
                 activeTargetSticker = stk;
-                transformActionNode = "move";
+                transformActionNode = "pendingMove";
                 mouseOffsetPointer.x = coords.x - stk.x;
                 mouseOffsetPointer.y = coords.y - stk.y;
+                stickerMoveStartCoords = { x: coords.x, y: coords.y };
                 syncStickerPanelSettings(stk);
                 e.preventDefault();
                 return;
@@ -904,9 +1067,20 @@ function setupStickerDragAndTransformListeners() {
         let cos = Math.cos(activeTargetSticker.angle);
         let sin = Math.sin(activeTargetSticker.angle);
 
+        if (transformActionNode === "pendingMove") {
+            const dist = Math.hypot(coords.x - stickerMoveStartCoords.x, coords.y - stickerMoveStartCoords.y);
+            if (dist < 6) return;
+            transformActionNode = "move";
+        }
         if (transformActionNode === "move") {
             activeTargetSticker.x = coords.x - mouseOffsetPointer.x;
             activeTargetSticker.y = coords.y - mouseOffsetPointer.y;
+            const cfg = templateRegistry[selectedLayoutId];
+            const snapThreshold = 12;
+            showCenterGuideX = Math.abs(activeTargetSticker.x - cfg.w / 2) < snapThreshold;
+            showCenterGuideY = Math.abs(activeTargetSticker.y - cfg.h / 2) < snapThreshold;
+            if (showCenterGuideX) activeTargetSticker.x = cfg.w / 2;
+            if (showCenterGuideY) activeTargetSticker.y = cfg.h / 2;
         } 
         else if (transformActionNode === "rotate") {
             let currentMouseAngle = Math.atan2(coords.y - activeTargetSticker.y, coords.x - activeTargetSticker.x);
@@ -955,7 +1129,14 @@ function setupStickerDragAndTransformListeners() {
         e.preventDefault();
     }
 
-    function handleEnd() { transformActionNode = "none"; }
+    function handleEnd() {
+        if (transformActionNode === "pendingMove") {
+            triggerLiveOverlayRedraw();
+        }
+        transformActionNode = "none";
+        showCenterGuideX = false;
+        showCenterGuideY = false;
+    }
 
     function syncStickerPanelSettings(stk) {
         let textInputField = document.getElementById("stickerTextInput");
@@ -992,24 +1173,10 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
     let design = designRegistry[designName] || designRegistry['classic'];
 
     // 1. BACKGROUND RENDERING
-    if (design.isPattern) {
-        targetCtx.fillStyle = "#ffffff";
-        targetCtx.fillRect(0, 0, canvasW, canvasH);
-        targetCtx.fillStyle = "#e0e0e0";
-        let size = 25 * scale;
-        for (let r = 0; r < canvasH; r += size) {
-            for (let c = 0; c < canvasW; c += size) {
-                if ((Math.floor(r / size) + Math.floor(c / size)) % 2 === 0) {
-                    targetCtx.fillRect(c, r, size, size);
-                }
-            }
-        }
-    } else {
-        targetCtx.fillStyle = design.bgColor;
-        targetCtx.fillRect(0, 0, canvasW, canvasH);
-    }
+    targetCtx.fillStyle = design.bgColor;
+    targetCtx.fillRect(0, 0, canvasW, canvasH);
 
-    // 2. DESIGN OVERLAYS (NEON & FILMSTRIP HOLES)
+    // 2. DESIGN OVERLAYS
     if (design.isNeon) {
         targetCtx.save();
         targetCtx.strokeStyle = "#00ffff";
@@ -1017,7 +1184,6 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
         targetCtx.shadowBlur = 15 * scale;
         targetCtx.shadowColor = "#00ffff";
         targetCtx.strokeRect(4 * scale, 4 * scale, canvasW - 8 * scale, canvasH - 8 * scale);
-
         targetCtx.strokeStyle = "#ff007f";
         targetCtx.lineWidth = 3 * scale;
         targetCtx.shadowBlur = 10 * scale;
@@ -1028,18 +1194,289 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
 
     if (design.isFilm) {
         targetCtx.fillStyle = "#ffffff";
-        let holeW = 10 * scale;
-        let holeH = 15 * scale;
-        let gap = 22 * scale;
-        
-        // Kaliwang gilid ng mga butas
+        let holeW = 10 * scale, holeH = 15 * scale, gap = 22 * scale;
         for (let y = gap; y < canvasH - gap; y += gap + holeH) {
             targetCtx.fillRect(6 * scale, y, holeW, holeH);
-        }
-        // Kanang gilid ng mga butas
-        for (let y = gap; y < canvasH - gap; y += gap + holeH) {
             targetCtx.fillRect(canvasW - 16 * scale, y, holeW, holeH);
         }
+    }
+
+    if (design.isSakura) {
+        // Soft pink double border
+        targetCtx.save();
+        targetCtx.strokeStyle = "#ffb3cc";
+        targetCtx.lineWidth = 6 * scale;
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.strokeStyle = "#ffd6e7";
+        targetCtx.lineWidth = 2 * scale;
+        targetCtx.strokeRect(10 * scale, 10 * scale, canvasW - 20 * scale, canvasH - 20 * scale);
+        // Petals in corners (unscaled coords, will be multiplied by scale)
+        const petalPositions = [[18, 18], [config.w - 18, 18], [18, config.h - 18], [config.w - 18, config.h - 18]];
+        petalPositions.forEach(([px, py]) => {
+            for (let p = 0; p < 5; p++) {
+                targetCtx.save();
+                targetCtx.translate(px * scale, py * scale);
+                targetCtx.rotate((p * Math.PI * 2) / 5);
+                targetCtx.fillStyle = "#ffb3cc";
+                targetCtx.beginPath();
+                targetCtx.ellipse(0, -5 * scale, 2.5 * scale, 5 * scale, 0, 0, Math.PI * 2);
+                targetCtx.fill();
+                targetCtx.restore();
+            }
+            targetCtx.save();
+            targetCtx.translate(px * scale, py * scale);
+            targetCtx.fillStyle = "#ff91b0";
+            targetCtx.beginPath();
+            targetCtx.arc(0, 0, 2 * scale, 0, Math.PI * 2);
+            targetCtx.fill();
+            targetCtx.restore();
+        });
+        targetCtx.restore();
+    }
+
+    if (design.isLavender) {
+        // Soft double border with tiny heart dots along edges
+        targetCtx.save();
+        targetCtx.strokeStyle = "#c4a8f5";
+        targetCtx.lineWidth = 7 * scale;
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.strokeStyle = "#e0d0ff";
+        targetCtx.lineWidth = 2 * scale;
+        targetCtx.setLineDash([6 * scale, 6 * scale]);
+        targetCtx.strokeRect(13 * scale, 13 * scale, canvasW - 26 * scale, canvasH - 26 * scale);
+        targetCtx.setLineDash([]);
+        // Stars along border
+        const starSpacing = 45 * scale;
+        targetCtx.fillStyle = "#c4a8f5";
+        for (let x = starSpacing; x < canvasW; x += starSpacing) {
+            drawSmallStar(targetCtx, x, 8 * scale, 4 * scale);
+            drawSmallStar(targetCtx, x, canvasH - 8 * scale, 4 * scale);
+        }
+        for (let y = starSpacing; y < canvasH; y += starSpacing) {
+            drawSmallStar(targetCtx, 8 * scale, y, 4 * scale);
+            drawSmallStar(targetCtx, canvasW - 8 * scale, y, 4 * scale);
+        }
+        targetCtx.restore();
+    }
+
+    if (design.isBubblegum) {
+        // Polka dot pattern background layer
+        targetCtx.save();
+        const dotColors = ["#ffb3d9", "#b3eaff", "#ffe0b3", "#d4b3ff", "#b3ffd4"];
+        const dotSpacing = 30 * scale;
+        let dc = 0;
+        for (let dy = 10 * scale; dy < canvasH; dy += dotSpacing) {
+            for (let dx = 10 * scale; dx < canvasW; dx += dotSpacing) {
+                targetCtx.fillStyle = dotColors[dc % dotColors.length] + "55";
+                targetCtx.beginPath();
+                targetCtx.arc(dx, dy, 6 * scale, 0, Math.PI * 2);
+                targetCtx.fill();
+                dc++;
+            }
+        }
+        // Bold outer border
+        targetCtx.strokeStyle = "#ff5fa2";
+        targetCtx.lineWidth = 8 * scale;
+        targetCtx.strokeRect(4 * scale, 4 * scale, canvasW - 8 * scale, canvasH - 8 * scale);
+        targetCtx.strokeStyle = "#aaf0ff";
+        targetCtx.lineWidth = 3 * scale;
+        targetCtx.strokeRect(14 * scale, 14 * scale, canvasW - 28 * scale, canvasH - 28 * scale);
+        targetCtx.restore();
+    }
+
+    if (design.isStargirl) {
+        // Gold outer border with glow + scattered stars
+        targetCtx.save();
+        targetCtx.strokeStyle = "#ffd700";
+        targetCtx.lineWidth = 5 * scale;
+        targetCtx.shadowBlur = 12 * scale;
+        targetCtx.shadowColor = "#ffd700";
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.shadowBlur = 0;
+        targetCtx.strokeStyle = "#ffffff22";
+        targetCtx.lineWidth = 1 * scale;
+        targetCtx.strokeRect(12 * scale, 12 * scale, canvasW - 24 * scale, canvasH - 24 * scale);
+        // Scattered stars
+        const starSeeds = [[0.08,0.05],[0.92,0.05],[0.5,0.03],[0.15,0.95],[0.85,0.95],[0.5,0.97],[0.03,0.5],[0.97,0.5],[0.03,0.25],[0.97,0.75],[0.03,0.75],[0.97,0.25]];
+        starSeeds.forEach(([fx, fy]) => {
+            targetCtx.fillStyle = "#ffd700";
+            drawSmallStar(targetCtx, fx * canvasW, fy * canvasH, 5 * scale);
+        });
+        targetCtx.restore();
+    }
+
+    if (design.isCottagecore) {
+        // Warm double border + tiny leaf/dot corners
+        targetCtx.save();
+        targetCtx.strokeStyle = "#c9a06e";
+        targetCtx.lineWidth = 7 * scale;
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.strokeStyle = "#a07850";
+        targetCtx.lineWidth = 2 * scale;
+        targetCtx.setLineDash([4 * scale, 4 * scale]);
+        targetCtx.strokeRect(13 * scale, 13 * scale, canvasW - 26 * scale, canvasH - 26 * scale);
+        targetCtx.setLineDash([]);
+        // Leaf clusters in corners (unscaled coords)
+        [[16, 16], [config.w - 16, 16], [16, config.h - 16], [config.w - 16, config.h - 16]].forEach(([lx, ly]) => {
+            drawLeafCluster(targetCtx, lx * scale, ly * scale, scale);
+        });
+        targetCtx.restore();
+    }
+
+    if (design.isVintage) {
+        // Thick border + inner rule + sepia grain texture dots
+        targetCtx.save();
+        targetCtx.strokeStyle = "#c8a96e";
+        targetCtx.lineWidth = 10 * scale;
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.strokeStyle = "#e8d8b0";
+        targetCtx.lineWidth = 2 * scale;
+        targetCtx.strokeRect(18 * scale, 18 * scale, canvasW - 36 * scale, canvasH - 36 * scale);
+        // Grain dots
+        for (let i = 0; i < 120; i++) {
+            let gx = (Math.sin(i * 137.5) * 0.5 + 0.5) * canvasW;
+            let gy = (Math.cos(i * 97.3) * 0.5 + 0.5) * canvasH;
+            targetCtx.fillStyle = "rgba(160,120,60,0.06)";
+            targetCtx.beginPath();
+            targetCtx.arc(gx, gy, 2 * scale, 0, Math.PI * 2);
+            targetCtx.fill();
+        }
+        targetCtx.restore();
+    }
+
+    if (design.isAngelcore) {
+        // Soft pink glowing border + cloud puffs in corners
+        targetCtx.save();
+        targetCtx.strokeStyle = "#ffd6e7";
+        targetCtx.lineWidth = 8 * scale;
+        targetCtx.shadowBlur = 18 * scale;
+        targetCtx.shadowColor = "#ffb3ce";
+        targetCtx.strokeRect(4 * scale, 4 * scale, canvasW - 8 * scale, canvasH - 8 * scale);
+        targetCtx.shadowBlur = 0;
+        targetCtx.strokeStyle = "#ffe4f0";
+        targetCtx.lineWidth = 2 * scale;
+        targetCtx.setLineDash([5 * scale, 5 * scale]);
+        targetCtx.strokeRect(15 * scale, 15 * scale, canvasW - 30 * scale, canvasH - 30 * scale);
+        targetCtx.setLineDash([]);
+        // Tiny heart border accents
+        const heartSpacing = 50 * scale;
+        for (let x = heartSpacing; x < canvasW; x += heartSpacing) {
+            drawTinyHeart(targetCtx, x, 9 * scale, 4 * scale, "#ffb3ce");
+            drawTinyHeart(targetCtx, x, canvasH - 9 * scale, 4 * scale, "#ffb3ce");
+        }
+        for (let y = heartSpacing; y < canvasH; y += heartSpacing) {
+            drawTinyHeart(targetCtx, 9 * scale, y, 4 * scale, "#ffb3ce");
+            drawTinyHeart(targetCtx, canvasW - 9 * scale, y, 4 * scale, "#ffb3ce");
+        }
+        targetCtx.restore();
+    }
+
+    if (design.isPastelwave) {
+        // Pastel rainbow stripe border + wavy inner decoration
+        targetCtx.save();
+        const pastelBands = ["#ffd6e7", "#ffecd2", "#fffbd0", "#d4f5e9", "#d0eeff", "#e8d0ff"];
+        const bandW = 4 * scale;
+        pastelBands.forEach((color, i) => {
+            targetCtx.strokeStyle = color;
+            targetCtx.lineWidth = bandW;
+            const inset = (i * bandW) + 2 * scale;
+            targetCtx.strokeRect(inset, inset, canvasW - inset * 2, canvasH - inset * 2);
+        });
+        targetCtx.restore();
+    }
+
+    if (design.isRosegold) {
+        targetCtx.save();
+        const rgGrad = targetCtx.createLinearGradient(0, 0, canvasW, canvasH);
+        rgGrad.addColorStop(0, "#f7c5a0"); rgGrad.addColorStop(0.5, "#e8a87c"); rgGrad.addColorStop(1, "#d4956a");
+        targetCtx.strokeStyle = rgGrad; targetCtx.lineWidth = 9 * scale;
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.strokeStyle = "#f5d5c0"; targetCtx.lineWidth = 2 * scale;
+        targetCtx.strokeRect(16 * scale, 16 * scale, canvasW - 32 * scale, canvasH - 32 * scale);
+        targetCtx.strokeStyle = "#c9876a"; targetCtx.lineWidth = 1 * scale;
+        targetCtx.strokeRect(20 * scale, 20 * scale, canvasW - 40 * scale, canvasH - 40 * scale);
+        targetCtx.restore();
+    }
+
+    if (design.isFairycore) {
+        targetCtx.save();
+        targetCtx.strokeStyle = "#d4a0ff"; targetCtx.lineWidth = 6 * scale;
+        targetCtx.shadowBlur = 14 * scale; targetCtx.shadowColor = "#c880ff";
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.shadowBlur = 0;
+        targetCtx.strokeStyle = "#ecd4ff"; targetCtx.lineWidth = 2 * scale;
+        targetCtx.setLineDash([3 * scale, 5 * scale]);
+        targetCtx.strokeRect(14 * scale, 14 * scale, canvasW - 28 * scale, canvasH - 28 * scale);
+        targetCtx.setLineDash([]);
+        const diamondPositions = [[0.1,0.05],[0.9,0.05],[0.5,0.02],[0.1,0.95],[0.9,0.95],[0.5,0.98],[0.02,0.5],[0.98,0.5]];
+        diamondPositions.forEach(([fx, fy]) => {
+            let dx = fx * canvasW, dy = fy * canvasH, dr = 4 * scale;
+            targetCtx.fillStyle = "#d4a0ff";
+            targetCtx.save(); targetCtx.translate(dx, dy); targetCtx.rotate(Math.PI / 4);
+            targetCtx.fillRect(-dr, -dr, dr * 2, dr * 2); targetCtx.restore();
+        });
+        targetCtx.restore();
+    }
+
+    if (design.isMatcha) {
+        targetCtx.save();
+        targetCtx.strokeStyle = "#7aab6a"; targetCtx.lineWidth = 8 * scale;
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.strokeStyle = "#a8cc98"; targetCtx.lineWidth = 3 * scale;
+        targetCtx.strokeRect(15 * scale, 15 * scale, canvasW - 30 * scale, canvasH - 30 * scale);
+        targetCtx.strokeStyle = "#c8e0be"; targetCtx.lineWidth = 1 * scale;
+        targetCtx.setLineDash([8 * scale, 4 * scale]);
+        targetCtx.strokeRect(22 * scale, 22 * scale, canvasW - 44 * scale, canvasH - 44 * scale);
+        targetCtx.setLineDash([]);
+        targetCtx.restore();
+    }
+
+    if (design.isBabypink) {
+        targetCtx.save();
+        targetCtx.strokeStyle = "#ffadc5"; targetCtx.lineWidth = 8 * scale;
+        targetCtx.shadowBlur = 10 * scale; targetCtx.shadowColor = "#ff8fb0";
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.shadowBlur = 0;
+        targetCtx.strokeStyle = "#ffd0e0"; targetCtx.lineWidth = 2 * scale;
+        targetCtx.strokeRect(16 * scale, 16 * scale, canvasW - 32 * scale, canvasH - 32 * scale);
+        const hSpacing = 40 * scale;
+        for (let x = hSpacing; x < canvasW; x += hSpacing) {
+            drawTinyHeart(targetCtx, x, 10 * scale, 5 * scale, "#ffadc5");
+            drawTinyHeart(targetCtx, x, canvasH - 10 * scale, 5 * scale, "#ffadc5");
+        }
+        for (let y = hSpacing; y < canvasH; y += hSpacing) {
+            drawTinyHeart(targetCtx, 10 * scale, y, 5 * scale, "#ffadc5");
+            drawTinyHeart(targetCtx, canvasW - 10 * scale, y, 5 * scale, "#ffadc5");
+        }
+        targetCtx.restore();
+    }
+
+    if (design.isMidnightblue) {
+        targetCtx.save();
+        targetCtx.strokeStyle = "#3a6bc9"; targetCtx.lineWidth = 7 * scale;
+        targetCtx.shadowBlur = 16 * scale; targetCtx.shadowColor = "#5588ee";
+        targetCtx.strokeRect(5 * scale, 5 * scale, canvasW - 10 * scale, canvasH - 10 * scale);
+        targetCtx.shadowBlur = 0;
+        targetCtx.strokeStyle = "#1e3a7a"; targetCtx.lineWidth = 2 * scale;
+        targetCtx.strokeRect(14 * scale, 14 * scale, canvasW - 28 * scale, canvasH - 28 * scale);
+        const moonStars = [[0.08,0.04],[0.92,0.04],[0.5,0.025],[0.08,0.96],[0.92,0.96],[0.04,0.3],[0.04,0.7],[0.96,0.3],[0.96,0.7],[0.25,0.02],[0.75,0.02],[0.25,0.98],[0.75,0.98]];
+        moonStars.forEach(([fx, fy]) => {
+            targetCtx.fillStyle = "#aaccff";
+            drawSmallStar(targetCtx, fx * canvasW, fy * canvasH, 4 * scale);
+        });
+        targetCtx.restore();
+    }
+
+    if (design.isGroovy) {
+        targetCtx.save();
+        const groovyColors = ["#e05c2a", "#f2a123", "#f7d94c", "#5aab45", "#3a8fd9", "#9b59b6"];
+        const gBandW = 5 * scale;
+        groovyColors.forEach((color, i) => {
+            targetCtx.strokeStyle = color; targetCtx.lineWidth = gBandW;
+            const inset = i * gBandW + 2 * scale;
+            targetCtx.strokeRect(inset, inset, canvasW - inset * 2, canvasH - inset * 2);
+        });
+        targetCtx.restore();
     }
 
     // 3. PHOTO SLOTS / PHOTO RENDERING
@@ -1077,6 +1514,11 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
         targetCtx.shadowBlur = 0; // laging i-reset para sa susunod na loops
     });
 
+    // 3.5 CUSTOM CANVA OVERLAY (drawn on top of photos so the frame shows through)
+    if (config && config.customOverlayImage && config.customOverlayImage.complete && config.customOverlayImage.naturalWidth > 0) {
+        targetCtx.drawImage(config.customOverlayImage, 0, 0, canvasW, canvasH);
+    }
+
     // 4. STICKERS TEXT ENGINE (Para lang sa Main Active Canvas)
     if (!isThumb) {
         stickerTextList.forEach(stk => {
@@ -1101,32 +1543,32 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
                 targetCtx.save();
                 targetCtx.translate(0, -calculatedH/2 - 20);
                 targetCtx.scale(1/stk.scaleX, 1/stk.scaleY);
-                targetCtx.fillStyle = "#2ecc71"; targetCtx.beginPath(); targetCtx.arc(0, 0, 7, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
+                targetCtx.fillStyle = "#2ecc71"; targetCtx.beginPath(); targetCtx.arc(0, 0, 11, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
                 targetCtx.restore(); targetCtx.save();
 
                 targetCtx.translate(calculatedW/2, 0);
                 targetCtx.scale(1/stk.scaleX, 1/stk.scaleY);
-                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 7, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
+                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 11, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
                 targetCtx.restore(); targetCtx.save();
 
                 targetCtx.translate(-calculatedW/2, 0);
                 targetCtx.scale(1/stk.scaleX, 1/stk.scaleY);
-                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 7, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
+                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 11, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
                 targetCtx.restore(); targetCtx.save();
 
                 targetCtx.translate(0, calculatedH/2);
                 targetCtx.scale(1/stk.scaleX, 1/stk.scaleY);
-                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 7, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
+                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 11, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
                 targetCtx.restore(); targetCtx.save();
 
                 targetCtx.translate(0, -calculatedH/2);
                 targetCtx.scale(1/stk.scaleX, 1/stk.scaleY);
-                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 7, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
+                targetCtx.fillStyle = "#3498db"; targetCtx.beginPath(); targetCtx.arc(0, 0, 11, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
                 targetCtx.restore(); targetCtx.save();
 
                 targetCtx.translate(calculatedW/2, calculatedH/2);
                 targetCtx.scale(1/stk.scaleX, 1/stk.scaleY);
-                targetCtx.fillStyle = "#ffffff"; targetCtx.beginPath(); targetCtx.arc(0, 0, 7, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
+                targetCtx.fillStyle = "#ffffff"; targetCtx.beginPath(); targetCtx.arc(0, 0, 11, 0, Math.PI*2); targetCtx.fill(); targetCtx.stroke();
                 targetCtx.restore();
             }
 
@@ -1137,6 +1579,28 @@ function renderFrameFullEngine(targetCtx, structure, config, designName, isThumb
             targetCtx.fillText(stk.text, 0, 0);
             targetCtx.restore();
         });
+
+        // 5. CENTER ALIGNMENT GUIDE LINES
+        if (activeStep === 3 && (showCenterGuideX || showCenterGuideY)) {
+            targetCtx.save();
+            targetCtx.strokeStyle = "#ff3b30";
+            targetCtx.lineWidth = 1.2 * scale;
+            targetCtx.setLineDash([6 * scale, 4 * scale]);
+            if (showCenterGuideX) {
+                targetCtx.beginPath();
+                targetCtx.moveTo(canvasW / 2, 0);
+                targetCtx.lineTo(canvasW / 2, canvasH);
+                targetCtx.stroke();
+            }
+            if (showCenterGuideY) {
+                targetCtx.beginPath();
+                targetCtx.moveTo(0, canvasH / 2);
+                targetCtx.lineTo(canvasW, canvasH / 2);
+                targetCtx.stroke();
+            }
+            targetCtx.setLineDash([]);
+            targetCtx.restore();
+        }
     }
 }
 
@@ -1158,14 +1622,14 @@ function triggerMobileSafeDisplay() {
             </head>
             <body>
                 <span class="badge">📸 READY FOR SAVING</span>
-                <h2>Paano I-download sa Phone:</h2>
-                <p><strong>Long Press / Diinan nang matagal</strong> ang larawan sa ibaba at piliin ang <strong>"Save Image"</strong>.</p>
+                <h2>How to Save to Your Phone:</h2>
+                <p><strong>Long press / hold</strong> on the image below and tap <strong>"Save Image"</strong> or <strong>"Add to Photos"</strong>.</p>
                 <img src="${dataUrl}" />
             </body>
             </html>
         `);
         viewWindow.document.close();
-    } else { alert("Pakisuyong i-allow ang pop-ups para ma-save!"); }
+    } else { alert("Please allow pop-ups to save your photo!"); }
 }
 
 function resetEntireBoothProcess() { 
@@ -1177,6 +1641,684 @@ function resetEntireBoothProcess() {
     document.getElementById("stickerTextInput").value = "";
     navigateToScreen(1); 
 }
+
+function drawSmallStar(ctx, x, y, r) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+        let outerAngle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+        let innerAngle = outerAngle + Math.PI / 5;
+        if (i === 0) ctx.moveTo(Math.cos(outerAngle) * r, Math.sin(outerAngle) * r);
+        else ctx.lineTo(Math.cos(outerAngle) * r, Math.sin(outerAngle) * r);
+        ctx.lineTo(Math.cos(innerAngle) * r * 0.45, Math.sin(innerAngle) * r * 0.45);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawTinyHeart(ctx, x, y, r, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, r * 0.3);
+    ctx.bezierCurveTo(-r * 1.2, -r * 0.8, -r * 2, r * 0.5, 0, r * 1.5);
+    ctx.bezierCurveTo(r * 2, r * 0.5, r * 1.2, -r * 0.8, 0, r * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawLeafCluster(ctx, x, y, scale) {
+    const leafColors = ["#8bc34a", "#aed581", "#c5e1a5"];
+    for (let i = 0; i < 3; i++) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate((i * Math.PI * 2) / 3 + Math.PI / 6);
+        ctx.fillStyle = leafColors[i];
+        ctx.beginPath();
+        ctx.ellipse(0, -7 * scale, 3 * scale, 6 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "#6d4c41";
+    ctx.beginPath();
+    ctx.arc(0, 0, 2 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+
+// ===================== CUSTOM LAYOUT BUILDER =====================
+let customUploadedImage = null;
+let customTemplateW = 0, customTemplateH = 0;
+let customSlots = [];
+let customDrawing = false;
+let customStartX = 0, customStartY = 0;
+let customCurrentRect = null;
+let customNextSlotId = 1;
+let customLayoutCounter = 100;
+let customSelectedSlotId = null;
+let customDragOp = null; // {type:"move"|"resize"|"draw", handle, slotId, startPos, origSlot}
+let customSnapEnabled = false;
+const CUSTOM_GRID = 20;
+
+function snapG(v) { return customSnapEnabled ? Math.round(v / CUSTOM_GRID) * CUSTOM_GRID : Math.round(v); }
+
+function toggleCustomSnap() {
+    customSnapEnabled = !customSnapEnabled;
+    const btn = document.getElementById("customSnapBtn");
+    if (btn) {
+        btn.style.background = customSnapEnabled ? "#1a2f1a" : "#252632";
+        btn.style.borderColor = customSnapEnabled ? "#34c759" : "#363646";
+        btn.style.color = customSnapEnabled ? "#34c759" : "#71717a";
+        btn.textContent = customSnapEnabled ? "⊞ Snap ON" : "⊞ Snap";
+    }
+    redrawCustomCanvas();
+}
+
+let customHistory = [];
+let customRedoStack = [];
+
+function pushCustomHistory() {
+    customHistory.push(JSON.stringify(customSlots));
+    if (customHistory.length > 50) customHistory.shift();
+    customRedoStack = [];
+    updateCustomUndoRedoBtns();
+}
+
+function undoCustom() {
+    if (customHistory.length === 0) return;
+    customRedoStack.push(JSON.stringify(customSlots));
+    customSlots = JSON.parse(customHistory.pop());
+    customSelectedSlotId = null;
+    customDragOp = null;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+    updateCustomUndoRedoBtns();
+}
+
+function redoCustom() {
+    if (customRedoStack.length === 0) return;
+    customHistory.push(JSON.stringify(customSlots));
+    customSlots = JSON.parse(customRedoStack.pop());
+    customSelectedSlotId = null;
+    customDragOp = null;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+    updateCustomUndoRedoBtns();
+}
+
+function updateCustomUndoRedoBtns() {
+    const u = document.getElementById("customUndoBtn");
+    const r = document.getElementById("customRedoBtn");
+    if (u) u.style.display = customHistory.length > 0 ? "block" : "none";
+    if (r) r.style.display = customRedoStack.length > 0 ? "block" : "none";
+}
+
+function addCustomSlotByButton() {
+    if (!customUploadedImage) return;
+    pushCustomHistory();
+    const sw = snapG(Math.round(customTemplateW / 3));
+    const sh = snapG(Math.round(customTemplateH / 3));
+    const sx = snapG(Math.round((customTemplateW - sw) / 2));
+    const sy = snapG(Math.round((customTemplateH - sh) / 2));
+    const newSlot = { id: customNextSlotId++, x: sx, y: sy, w: sw, h: sh, image: null };
+    customSlots.push(newSlot);
+    customSelectedSlotId = newSlot.id;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function addFullCoverSlot() {
+    if (!customUploadedImage) return;
+    pushCustomHistory();
+    const newSlot = { id: customNextSlotId++, x: 0, y: 0, w: customTemplateW, h: customTemplateH, image: null };
+    customSlots.push(newSlot);
+    customSelectedSlotId = newSlot.id;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function openCustomLayoutModal() {
+    document.getElementById("customLayoutModal").classList.add("open");
+    setupCustomDrawListeners();
+}
+function closeCustomLayoutModal() {
+    document.getElementById("customLayoutModal").classList.remove("open");
+}
+
+function handleCustomFileInput(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => loadCustomImage(img);
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function loadCustomImage(img) {
+    customUploadedImage = img;
+    const maxW = 600;
+    const sc = Math.min(1, maxW / img.width);
+    customTemplateW = Math.round(img.width * sc);
+    customTemplateH = Math.round(img.height * sc);
+    customSlots = [];
+    customNextSlotId = 1;
+    customSelectedSlotId = null;
+    customDragOp = null;
+    customHistory = [];
+    customRedoStack = [];
+
+    const cvs = document.getElementById("customDrawCanvas");
+    const displayW = Math.min(360, window.innerWidth - 64);
+    const displayH = Math.round(displayW * (img.height / img.width));
+    cvs.width = displayW;
+    cvs.height = displayH;
+    cvs.style.width = displayW + "px";
+    cvs.style.height = displayH + "px";
+    cvs.style.cursor = "crosshair";
+
+    document.getElementById("customDrawArea").style.display = "block";
+    document.getElementById("customUploadArea").style.display = "none";
+    document.getElementById("customSaveBtn").style.display = "block";
+    document.getElementById("customNameRow").style.display = "none";
+
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function getCustomCanvasPos(e) {
+    const cvs = document.getElementById("customDrawCanvas");
+    const rect = cvs.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: (clientX - rect.left) * (cvs.width / rect.width),
+        y: (clientY - rect.top) * (cvs.height / rect.height)
+    };
+}
+
+function displayToTemplate(x, y) {
+    const cvs = document.getElementById("customDrawCanvas");
+    return {
+        x: x * (customTemplateW / cvs.width),
+        y: y * (customTemplateH / cvs.height)
+    };
+}
+
+const HANDLE_R = 7; // display-pixel radius for resize handles
+
+function getSlotDisplayRect(slot) {
+    const cvs = document.getElementById("customDrawCanvas");
+    const sX = cvs.width / customTemplateW, sY = cvs.height / customTemplateH;
+    return { dx: slot.x * sX, dy: slot.y * sY, dw: slot.w * sX, dh: slot.h * sY };
+}
+
+function getHandlePoints(dx, dy, dw, dh) {
+    return {
+        nw: [dx,       dy      ], n:  [dx+dw/2,  dy      ], ne: [dx+dw,    dy      ],
+        w:  [dx,       dy+dh/2 ],                            e:  [dx+dw,    dy+dh/2 ],
+        sw: [dx,       dy+dh   ], s:  [dx+dw/2,  dy+dh   ], se: [dx+dw,    dy+dh   ]
+    };
+}
+
+function getHitTarget(pos) {
+    // Check selected slot handles first
+    if (customSelectedSlotId !== null) {
+        const sel = customSlots.find(s => s.id === customSelectedSlotId);
+        if (sel) {
+            const { dx, dy, dw, dh } = getSlotDisplayRect(sel);
+            const handles = getHandlePoints(dx, dy, dw, dh);
+            for (const [handle, [hx, hy]] of Object.entries(handles)) {
+                if (Math.hypot(pos.x - hx, pos.y - hy) <= HANDLE_R + 3) {
+                    return { type: "resize", handle, slotId: sel.id };
+                }
+            }
+        }
+    }
+    // Check all slots for move hit
+    for (let i = customSlots.length - 1; i >= 0; i--) {
+        const s = customSlots[i];
+        const { dx, dy, dw, dh } = getSlotDisplayRect(s);
+        if (pos.x >= dx && pos.x <= dx + dw && pos.y >= dy && pos.y <= dy + dh) {
+            return { type: "move", slotId: s.id };
+        }
+    }
+    return { type: "empty" };
+}
+
+function getResizeCursor(handle) {
+    const map = { nw:"nw-resize", ne:"ne-resize", sw:"sw-resize", se:"se-resize", n:"n-resize", s:"s-resize", w:"w-resize", e:"e-resize" };
+    return map[handle] || "crosshair";
+}
+
+function redrawCustomCanvas() {
+    const cvs = document.getElementById("customDrawCanvas");
+    if (!cvs || !customUploadedImage) return;
+    const ctx = cvs.getContext("2d");
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    ctx.drawImage(customUploadedImage, 0, 0, cvs.width, cvs.height);
+
+    if (customSnapEnabled) {
+        const gx = CUSTOM_GRID * (cvs.width / customTemplateW);
+        const gy = CUSTOM_GRID * (cvs.height / customTemplateH);
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,0.13)";
+        ctx.lineWidth = 0.5;
+        for (let x = gx; x < cvs.width; x += gx) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
+        }
+        for (let y = gy; y < cvs.height; y += gy) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    customSlots.forEach((slot, idx) => {
+        const { dx, dy, dw, dh } = getSlotDisplayRect(slot);
+        const isSelected = slot.id === customSelectedSlotId;
+
+        ctx.fillStyle = isSelected ? "rgba(255,159,10,0.28)" : "rgba(0,122,255,0.22)";
+        ctx.fillRect(dx, dy, dw, dh);
+        ctx.strokeStyle = isSelected ? "#ff9f0a" : "#007aff";
+        ctx.lineWidth = isSelected ? 2.5 : 2;
+        ctx.strokeRect(dx, dy, dw, dh);
+
+        // Number label
+        ctx.fillStyle = "#fff";
+        ctx.font = `bold ${Math.max(11, Math.min(dh * 0.32, 26))}px sans-serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0,0,0,0.7)"; ctx.shadowBlur = 4;
+        ctx.fillText(idx + 1, dx + dw / 2, dy + dh / 2);
+        ctx.shadowBlur = 0;
+
+        // Draw resize handles for selected slot
+        if (isSelected) {
+            const handles = getHandlePoints(dx, dy, dw, dh);
+            Object.values(handles).forEach(([hx, hy]) => {
+                ctx.fillStyle = "#ff9f0a";
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(hx, hy, HANDLE_R, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+            });
+        }
+    });
+
+}
+
+let customListenersAttached = false;
+function setupCustomDrawListeners() {
+    if (customListenersAttached) return;
+    customListenersAttached = true;
+    const cvs = document.getElementById("customDrawCanvas");
+
+    function onStart(e) {
+        if (!customUploadedImage) return;
+        e.preventDefault();
+        const pos = getCustomCanvasPos(e);
+        const hit = getHitTarget(pos);
+
+        if (hit.type === "resize") {
+            const slot = customSlots.find(s => s.id === hit.slotId);
+            pushCustomHistory();
+            customDragOp = { type: "resize", handle: hit.handle, slotId: hit.slotId,
+                startPos: pos, origSlot: { ...slot } };
+        } else if (hit.type === "move") {
+            const slot = customSlots.find(s => s.id === hit.slotId);
+            const { dx, dy } = getSlotDisplayRect(slot);
+            pushCustomHistory();
+            customSelectedSlotId = hit.slotId;
+            customDragOp = { type: "move", slotId: hit.slotId,
+                startPos: pos, origSlot: { ...slot },
+                offsetX: pos.x - dx, offsetY: pos.y - dy };
+            updateCustomSlotList();
+        } else {
+            customSelectedSlotId = null;
+            updateCustomSlotList();
+            redrawCustomCanvas();
+            return;
+        }
+        redrawCustomCanvas();
+    }
+
+    function onMove(e) {
+        if (!customDragOp) return;
+        e.preventDefault();
+        const pos = getCustomCanvasPos(e);
+        const cvs = document.getElementById("customDrawCanvas");
+        const sX = cvs.width / customTemplateW, sY = cvs.height / customTemplateH;
+
+        if (customDragOp.type === "move") {
+            const slot = customSlots.find(s => s.id === customDragOp.slotId);
+            if (!slot) return;
+            const newDx = pos.x - customDragOp.offsetX;
+            const newDy = pos.y - customDragOp.offsetY;
+            slot.x = snapG(Math.max(0, Math.min(newDx / sX, customTemplateW - slot.w)));
+            slot.y = snapG(Math.max(0, Math.min(newDy / sY, customTemplateH - slot.h)));
+        } else if (customDragOp.type === "resize") {
+            const slot = customSlots.find(s => s.id === customDragOp.slotId);
+            if (!slot) return;
+            const orig = customDragOp.origSlot;
+            const dx = (pos.x - customDragOp.startPos.x) / sX;
+            const dy = (pos.y - customDragOp.startPos.y) / sY;
+            const h = customDragOp.handle;
+            let nx = orig.x, ny = orig.y, nw = orig.w, nh = orig.h;
+            if (h.includes("e")) nw = Math.max(CUSTOM_GRID, orig.w + dx);
+            if (h.includes("s")) nh = Math.max(CUSTOM_GRID, orig.h + dy);
+            if (h.includes("w")) { nx = Math.min(orig.x + dx, orig.x + orig.w - CUSTOM_GRID); nw = orig.w - (nx - orig.x); }
+            if (h.includes("n")) { ny = Math.min(orig.y + dy, orig.y + orig.h - CUSTOM_GRID); nh = orig.h - (ny - orig.y); }
+            slot.x = snapG(Math.max(0, nx));
+            slot.y = snapG(Math.max(0, ny));
+            slot.w = snapG(Math.min(nw, customTemplateW - slot.x));
+            slot.h = snapG(Math.min(nh, customTemplateH - slot.y));
+        }
+
+        // Update cursor based on hover
+        if (!customDragOp) {
+            const hit = getHitTarget(pos);
+            cvs.style.cursor = hit.type === "resize" ? getResizeCursor(hit.handle)
+                : hit.type === "move" ? "move" : "default";
+        }
+        redrawCustomCanvas();
+    }
+
+    function onEnd(e) {
+        if (!customDragOp) return;
+        e.preventDefault();
+        customDragOp = null;
+        redrawCustomCanvas();
+        updateCustomSlotList();
+    }
+
+    function onHover(e) {
+        if (customDragOp) return;
+        const pos = getCustomCanvasPos(e);
+        const hit = getHitTarget(pos);
+        cvs.style.cursor = hit.type === "resize" ? getResizeCursor(hit.handle)
+            : hit.type === "move" ? "move" : "crosshair";
+    }
+
+    cvs.addEventListener("mousedown", onStart);
+    cvs.addEventListener("mousemove", onMove);
+    cvs.addEventListener("mousemove", onHover);
+    cvs.addEventListener("mouseup", onEnd);
+    cvs.addEventListener("touchstart", onStart, { passive: false });
+    cvs.addEventListener("touchmove", onMove, { passive: false });
+    cvs.addEventListener("touchend", onEnd, { passive: false });
+}
+
+function deleteCustomSlot(id) {
+    pushCustomHistory();
+    customSlots = customSlots.filter(s => s.id !== id);
+    if (customSelectedSlotId === id) customSelectedSlotId = null;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function clearCustomSlots() {
+    pushCustomHistory();
+    customSlots = [];
+    customNextSlotId = 1;
+    customSelectedSlotId = null;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function selectCustomSlot(id) {
+    customSelectedSlotId = (customSelectedSlotId === id) ? null : id;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function duplicateCustomSlot() {
+    if (customSelectedSlotId === null) return;
+    const orig = customSlots.find(s => s.id === customSelectedSlotId);
+    if (!orig) return;
+    pushCustomHistory();
+    const offset = 20;
+    const newSlot = {
+        id: customNextSlotId++,
+        x: Math.min(orig.x + offset, customTemplateW - orig.w),
+        y: Math.min(orig.y + offset, customTemplateH - orig.h),
+        w: orig.w,
+        h: orig.h,
+        image: null
+    };
+    customSlots.push(newSlot);
+    customSelectedSlotId = newSlot.id;
+    redrawCustomCanvas();
+    updateCustomSlotList();
+}
+
+function updateCustomSlotList() {
+    const list = document.getElementById("customSlotList");
+    const nameRow = document.getElementById("customNameRow");
+    const dupBtn = document.getElementById("customDuplicateBtn");
+    if (dupBtn) dupBtn.style.display = (customSelectedSlotId !== null && customSlots.length > 0) ? "block" : "none";
+
+    if (customSlots.length === 0) {
+        list.innerHTML = `<div style="color:#555;font-size:11px;text-align:center;padding:10px;">No slots yet — click &amp; drag on the image to draw photo slots. Click an existing slot to select and move/resize it.</div>`;
+        if (nameRow) nameRow.style.display = "none";
+        return;
+    }
+    if (nameRow) nameRow.style.display = "block";
+    list.innerHTML = customSlots.map((s, i) => {
+        const isSel = s.id === customSelectedSlotId;
+        return `<div onclick="selectCustomSlot(${s.id})"
+            style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:${isSel ? "#2a1f0a" : "#252632"};border:1px solid ${isSel ? "#ff9f0a" : "transparent"};border-radius:7px;font-size:11px;cursor:pointer;transition:all 0.1s;">
+            <span style="color:${isSel ? "#ff9f0a" : "#007aff"};font-weight:700;">📷 Slot ${i + 1}</span>
+            <span style="color:#71717a;">${s.w} × ${s.h}</span>
+            <button onclick="event.stopPropagation();deleteCustomSlot(${s.id})" style="background:#ef4444;border:none;color:#fff;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;font-weight:700;">✕</button>
+        </div>`;
+    }).join("");
+}
+
+function buildAndInsertCustomCard(id, autoSelect) {
+    const config = templateRegistry[id];
+    const thumbH = Math.round(50 * (config.h / config.w));
+    const displayLabel = config.label && config.label !== "Custom" ? config.label : "Custom";
+    const grid = document.getElementById("layoutGrid");
+    const addCard = document.getElementById("addCustomCard");
+
+    const newCard = document.createElement("div");
+    newCard.className = "template-card";
+    newCard.id = `custom-card-${id}`;
+    newCard.style.position = "relative";
+    newCard.innerHTML = `
+        <canvas id="thumb-${id}" class="thumb-canvas" width="50" height="${thumbH}"></canvas>
+        <span class="title-label" id="custom-label-${id}" style="cursor:text;" title="Click ✏ to rename">${displayLabel}</span>
+        <span class="count-badge" style="background:rgba(52,199,89,0.15);color:#34c759;">${config.frames.length} Slots</span>
+        <button onclick="event.stopPropagation();startRenameCustomLayout(${id})" title="Rename"
+            style="position:absolute;top:4px;left:4px;background:#252632;border:1px solid #323446;color:#a1a1aa;border-radius:4px;width:16px;height:16px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✏</button>
+        <button onclick="event.stopPropagation();deleteCustomLayout(${id})" title="Delete layout"
+            style="position:absolute;top:4px;right:4px;background:#ef4444;border:none;color:#fff;border-radius:4px;width:16px;height:16px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>
+    `;
+    newCard.onclick = () => {
+        document.querySelectorAll(".template-card,.add-custom-card").forEach(el => el.classList.remove("selected"));
+        newCard.classList.add("selected");
+        selectedLayoutId = id;
+        currentFrameStructure = JSON.parse(JSON.stringify(templateRegistry[id].frames));
+    };
+    grid.insertBefore(newCard, addCard);
+
+    config.customOverlayImage.onload = () => {
+        const tc = document.getElementById(`thumb-${id}`);
+        if (tc) renderFrameFullEngine(tc.getContext("2d"), config.frames, config, "classic", true);
+    };
+    if (config.customOverlayImage.complete && config.customOverlayImage.naturalWidth > 0) {
+        const tc = document.getElementById(`thumb-${id}`);
+        if (tc) renderFrameFullEngine(tc.getContext("2d"), config.frames, config, "classic", true);
+    }
+
+    if (autoSelect) {
+        document.querySelectorAll(".template-card,.add-custom-card").forEach(el => el.classList.remove("selected"));
+        newCard.classList.add("selected");
+        selectedLayoutId = id;
+        currentFrameStructure = JSON.parse(JSON.stringify(config.frames));
+    }
+}
+
+function startRenameCustomLayout(id) {
+    const labelEl = document.getElementById(`custom-label-${id}`);
+    if (!labelEl) return;
+    const currentName = labelEl.textContent.trim();
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = currentName;
+    input.maxLength = 20;
+    input.style.cssText = "width:100%;font-size:10px;font-weight:600;background:#252632;border:1px solid #007aff;border-radius:4px;color:#fff;padding:2px 4px;text-align:center;outline:none;box-sizing:border-box;";
+
+    labelEl.replaceWith(input);
+    input.select();
+
+    function applyRename() {
+        const newName = input.value.trim() || currentName;
+        templateRegistry[id].label = newName;
+        const span = document.createElement("span");
+        span.className = "title-label";
+        span.id = `custom-label-${id}`;
+        span.style.cursor = "text";
+        span.title = "Click ✏ to rename";
+        span.textContent = newName;
+        input.replaceWith(span);
+        persistCustomLayouts();
+    }
+
+    input.addEventListener("blur", applyRename);
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); input.blur(); }
+        if (e.key === "Escape") { input.value = currentName; input.blur(); }
+    });
+}
+
+function persistCustomLayouts() {
+    try {
+        const saved = [];
+        Object.keys(templateRegistry).forEach(key => {
+            const cfg = templateRegistry[key];
+            if (!cfg.isCustom) return;
+            const offCvs = document.createElement("canvas");
+            offCvs.width = cfg.w; offCvs.height = cfg.h;
+            offCvs.getContext("2d").drawImage(cfg.customOverlayImage, 0, 0, cfg.w, cfg.h);
+            saved.push({
+                id: parseInt(key),
+                w: cfg.w, h: cfg.h,
+                label: cfg.label || "Custom",
+                frames: cfg.frames.map(f => ({ id: f.id, x: f.x, y: f.y, w: f.w, h: f.h })),
+                overlayDataUrl: offCvs.toDataURL("image/png")
+            });
+        });
+        localStorage.setItem("photobooth_custom_layouts", JSON.stringify(saved));
+        localStorage.setItem("photobooth_layout_counter", String(customLayoutCounter));
+    } catch(e) {
+        console.warn("Could not save custom layouts:", e);
+        alert("Custom layout saved for this session, but could not be stored permanently (image may be too large for browser storage).");
+    }
+}
+
+function restoreCustomLayouts() {
+    try {
+        const counter = localStorage.getItem("photobooth_layout_counter");
+        if (counter) customLayoutCounter = Math.max(customLayoutCounter, parseInt(counter));
+
+        const raw = localStorage.getItem("photobooth_custom_layouts");
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        saved.forEach(entry => {
+            const overlayImg = new Image();
+            overlayImg.src = entry.overlayDataUrl;
+            templateRegistry[entry.id] = {
+                w: entry.w, h: entry.h,
+                frames: entry.frames.map(f => ({ ...f, image: null })),
+                label: entry.label || "Custom",
+                customOverlayImage: overlayImg,
+                isCustom: true
+            };
+            if (entry.id >= customLayoutCounter) customLayoutCounter = entry.id + 1;
+            buildAndInsertCustomCard(entry.id, false);
+        });
+    } catch(e) {
+        console.warn("Could not restore custom layouts:", e);
+    }
+}
+
+function deleteCustomLayout(id) {
+    if (!confirm("Delete this custom layout?")) return;
+    delete templateRegistry[id];
+    const card = document.getElementById(`custom-card-${id}`);
+    if (card) card.remove();
+    if (selectedLayoutId === id) {
+        selectedLayoutId = 1;
+        currentFrameStructure = JSON.parse(JSON.stringify(templateRegistry[1].frames));
+        const firstCard = document.querySelector(".template-card");
+        if (firstCard) firstCard.classList.add("selected");
+    }
+    persistCustomLayouts();
+}
+
+function saveCustomLayout() {
+    if (!customUploadedImage) { alert("Please upload a Canva PNG first."); return; }
+    if (customSlots.length === 0) { alert("Please draw at least one photo slot on the image."); return; }
+
+    const id = customLayoutCounter++;
+    const frames = customSlots.map((s, i) => ({
+        id: i + 1, x: s.x, y: s.y, w: s.w, h: s.h, image: null
+    }));
+
+    const offCvs = document.createElement("canvas");
+    offCvs.width = customTemplateW; offCvs.height = customTemplateH;
+    offCvs.getContext("2d").drawImage(customUploadedImage, 0, 0, customTemplateW, customTemplateH);
+    const overlayDataUrl = offCvs.toDataURL("image/png");
+    const overlayImg = new Image();
+    overlayImg.src = overlayDataUrl;
+
+    const nameInput = document.getElementById("customLayoutNameInput");
+    const chosenLabel = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : "Custom";
+
+    templateRegistry[id] = {
+        w: customTemplateW, h: customTemplateH,
+        frames: frames,
+        label: chosenLabel,
+        customOverlayImage: overlayImg,
+        isCustom: true
+    };
+
+    buildAndInsertCustomCard(id, true);
+
+    // Persist to localStorage so it survives page refresh
+    overlayImg.onload = () => persistCustomLayouts();
+    if (overlayImg.complete) persistCustomLayouts();
+
+    // Reset modal state
+    document.getElementById("customUploadArea").style.display = "flex";
+    document.getElementById("customDrawArea").style.display = "none";
+    document.getElementById("customSaveBtn").style.display = "none";
+    document.getElementById("customNameRow").style.display = "none";
+    document.getElementById("customFileInput").value = "";
+    if (nameInput) nameInput.value = "";
+    customSlots = [];
+    customUploadedImage = null;
+    customSelectedSlotId = null;
+    customDragOp = null;
+    customHistory = [];
+    customRedoStack = [];
+    customListenersAttached = false;
+
+    closeCustomLayoutModal();
+}
+// ===================== END CUSTOM LAYOUT BUILDER =====================
+
 </script>
 </body>
 </html>
